@@ -2,6 +2,7 @@
 
 import {
   useLayoutEffect,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -83,6 +84,9 @@ export function MonthView({
   const [lanes, setLanes] = useState(4)
   const [drag, setDrag] = useState<Drag | null>(null)
   const dragRef = useRef<Drag | null>(null)
+  const cancelGesture = useRef<(() => void) | undefined>(undefined)
+  const rangeKey = weeks.map(week => week.map(dateKey).join()).join()
+  useEffect(() => () => cancelGesture.current?.(), [rangeKey])
   const [dropDay, setDropDay] = useState<DateKey | null>(null)
   const todayKey = dateKey(now)
 
@@ -123,7 +127,8 @@ export function MonthView({
   }
 
   const beginCreate = (event: ReactPointerEvent, day: DateKey) => {
-    startGesture(event, {
+    cancelGesture.current?.()
+    cancelGesture.current = startGesture(event, {
       onStart: () => set({ kind: 'create', from: day, to: day }),
       onMove: (x, y) => {
         const over = dayAtPoint(x, y)
@@ -153,7 +158,8 @@ export function MonthView({
     event.stopPropagation()
     const target = event.currentTarget
     const grab = dayAtPoint(event.clientX, event.clientY) ?? dateKey(item.start)
-    startGesture(event, {
+    cancelGesture.current?.()
+    cancelGesture.current = startGesture(event, {
       onStart: () => set({ kind: 'move', item, grab, day: grab }),
       onMove: (x, y) => {
         const over = dayAtPoint(x, y)

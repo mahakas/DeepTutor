@@ -3,6 +3,7 @@
 import {
   createElement,
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -108,6 +109,9 @@ export function TimeGrid({
   >(null)
   const keys = useMemo(() => days.map(dateKey), [days])
   const todayKey = dateKey(now)
+  const cancelGesture = useRef<(() => void) | null>(null)
+  const rangeKey = keys.join()
+  useEffect(() => () => cancelGesture.current?.(), [rangeKey])
 
   // Open on the working day, or a little above "now" when today is shown.
   const scrolledFor = useRef<string | null>(null)
@@ -190,10 +194,12 @@ export function TimeGrid({
       onDrop: (drag: Drag, anchor: Anchor | null) => void
     ) => {
       if (event.button !== 0) return
+      cancelGesture.current?.()
       event.preventDefault()
       const origin = { x: event.clientX, y: event.clientY }
       const target = event.currentTarget as HTMLElement
       let moved = false
+      let finished = false
       const move = (pointer: PointerEvent) => {
         lastPointer.current = { x: pointer.clientX, y: pointer.clientY }
         if (
@@ -209,6 +215,9 @@ export function TimeGrid({
         track(pointer.clientX, pointer.clientY)
       }
       const finish = (commit: boolean) => {
+        if (finished) return
+        finished = true
+        cancelGesture.current = null
         window.removeEventListener('pointermove', move)
         window.removeEventListener('pointerup', up)
         window.removeEventListener('pointercancel', cancel)
@@ -228,6 +237,7 @@ export function TimeGrid({
       const escape = (key: KeyboardEvent) => {
         if (key.key === 'Escape') finish(false)
       }
+      cancelGesture.current = cancel
       window.addEventListener('pointermove', move)
       window.addEventListener('pointerup', up)
       window.addEventListener('pointercancel', cancel)
