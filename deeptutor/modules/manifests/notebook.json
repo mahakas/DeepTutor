@@ -38,18 +38,15 @@
       "order": 631
     }
   ],
-  "commands": [
-    {
-      "name": "notebook",
-      "register": "deeptutor_cli.notebook:register",
-      "help": "Manage notebook."
-    }
-  ],
+  "commands": [],
   "navigation": [
     "/notebooks",
     "/learning/practice"
   ],
   "services": [],
   "requirements": [],
-  "executables": []
+  "executables": [],
+  "notes": [
+    "Web-only product: terminal commands removed. The HTTP routes above are the product surface; the CLI exists only to launch the app."
+  ]
 }

@@ -92,18 +92,15 @@ From an export directory:
 deeptutor kb create hermes-notes --docs-dir /path/to/hermes-export
 ```
 
-For a single file or later additions:
+For a single file or later additions, use **Knowledge → New KB** and the
+folder upload in the web app (`POST /api/knowledge/...`, served by
+`deeptutor/api/routers/knowledge.py`).
 
-```bash
-deeptutor kb create one-note --doc /path/to/note.md
-deeptutor kb add hermes-notes --docs-dir /path/to/more-notes
-```
-
-The CLI recursively collects supported files from `--docs-dir`, then copies
-each matched file into the top level of the KB's `raw/` directory. Because a
-duplicate filename can overwrite an earlier copy, prefer the web folder upload
-when filenames repeat or hierarchy is meaningful. Use `deeptutor kb list` and
-`deeptutor kb info hermes-notes` to confirm creation and document counts.
+> **This guide used to document `deeptutor kb create` / `kb add` / `kb list`.**
+> Those terminal commands were removed when the project became web-only. The
+> corresponding API routes and the web uploader are the supported path, and the
+> web uploader is the better one: it preserves folder hierarchy and refuses a
+> duplicate filename instead of silently overwriting an earlier copy.
 
 ## Verify the migration
 
@@ -120,4 +117,3 @@ when filenames repeat or hierarchy is meaningful. Use `deeptutor kb list` and
 
 - [deeptutor/capabilities/obsidian/vault.py](../deeptutor/capabilities/obsidian/vault.py)
 - [deeptutor/api/routers/knowledge.py](../deeptutor/api/routers/knowledge.py)
-- [deeptutor_cli/kb.py](../deeptutor_cli/kb.py)

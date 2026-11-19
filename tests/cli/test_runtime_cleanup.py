@@ -36,11 +36,17 @@ def test_cli_releases_runtime_lease_on_every_exit(outcome):
         pass
 
 
-def test_invalid_cli_capability_does_not_block_module_changes():
-    result = CliRunner().invoke(app, ["run", "auto", "hello"])
-    assert isinstance(result.exception, ValueError)
-    # Retain the traceback (and its container references): no GC is needed.
-    assert "Unknown capability" in str(result.exception)
+def test_a_failing_launcher_command_does_not_block_module_changes():
+    """A command that fails must still release the environment lease.
+
+    This used to drive `deeptutor run <bad-capability>`. That command is gone
+    with the terminal product, but the invariant it protected is not: whatever
+    a launcher command does, a failure must not leave the lease held, because
+    the next module install would then block forever. `start` on a missing
+    module is the surviving way to make a command fail before doing any work.
+    """
+    result = CliRunner().invoke(app, ["start", "--home", "/nonexistent/read-only/path"])
+    assert result.exit_code != 0 or result.exception is not None
     with environment_lease(exclusive=True):
         pass
 

@@ -1,4 +1,33 @@
-"""CLI entry point for the standalone ``deeptutor-cli`` package."""
+"""The DeepTutor entry point: start, stop and inspect the web app.
+
+Why this file still exists in a web-only product
+------------------------------------------------
+The web app is a Next.js frontend over a FastAPI backend, and something has to
+bring both up in the right order, on the right ports, with the right runtime
+home. That something is ``deeptutor start``. Removing the CLI entirely would
+leave the web app with no way to launch, which is not what "web only" means.
+
+What was removed
+----------------
+Every terminal *product* surface: ``chat``, ``skill``, ``plugin``, ``config``,
+``session``, ``provider``, ``workspace``, and the module commands (``book``,
+``kb``, ``memory``, ``notebook``, ``partner``). Those were a second way to use
+DeepTutor that happened to live in a terminal; this project is the browser one.
+
+What stayed, and why each one is load-bearing for the web app
+-------------------------------------------------------------
+``start`` / ``stop`` / ``serve``
+    The launcher. ``deeptutor start`` is what the README, the Dockerfile and
+    ``runtime/launcher.py`` all invoke.
+``init`` / ``init_wizard`` / ``setup_config``
+    First-run setup: runtime home, provider, model. The web settings page can
+    change these later, but the very first launch has no server to ask.
+``doctor``
+    Diagnosis for a stack that did not start. Its value is highest exactly when
+    the web app cannot run and cannot explain why.
+``module``
+    Install and remove optional modules. A deployment concern, not a chat one.
+"""
 
 from __future__ import annotations
 
@@ -12,112 +41,48 @@ from deeptutor.logging import configure_logging
 from deeptutor.modules.catalog import manifests, module_enabled
 from deeptutor.runtime.mode import RunMode, set_mode
 
-from .chat import register as register_chat
-from .common import build_turn_request, console, maybe_run
-from .config_cmd import register as register_config
+from .common import console
 from .doctor import register as register_doctor
 from .init_cmd import register as register_init
 from .module import register as register_module
-from .plugin import register as register_plugin
-from .provider_cmd import register as register_provider
-from .session_cmd import register as register_session
-from .skill import register as register_skill
-from .workspace_cmd import register as register_workspace
 
 set_mode(RunMode.CLI)
 configure_logging(console_stream=sys.stderr)
 
 app = typer.Typer(
     name="deeptutor",
-    help="DeepTutor CLI – agent-first interface for capabilities, tools, and knowledge.",
+    help="DeepTutor – launch and operate the web app.",
     no_args_is_help=True,
     add_completion=False,
 )
 
-chat_app = typer.Typer(help="Interactive chat REPL.")
-skill_app = typer.Typer(help="Manage skills and install from hubs (ClawHub, …).")
-plugin_app = typer.Typer(help="List plugins.")
-config_app = typer.Typer(help="Inspect and apply configuration.")
-session_app = typer.Typer(help="Manage shared sessions.")
-provider_app = typer.Typer(help="Manage provider OAuth login.")
-workspace_app = typer.Typer(help="Manage the user content workspace.")
-
-app.add_typer(chat_app, name="chat")
-app.add_typer(skill_app, name="skill")
-app.add_typer(skill_app, name="skills")  # alias: `deeptutor skills …`
-app.add_typer(plugin_app, name="plugin")
-app.add_typer(config_app, name="config")
-app.add_typer(session_app, name="session")
-app.add_typer(provider_app, name="provider")
-app.add_typer(workspace_app, name="workspace")
-
-register_chat(chat_app)
-register_skill(skill_app)
-register_plugin(plugin_app)
-register_config(config_app)
-register_session(session_app)
-register_provider(provider_app)
-register_workspace(workspace_app)
+# Module-registered commands are intentionally not mounted. The modules
+# themselves still exist and still serve their HTTP routes; what went away is
+# their terminal entry point. ``manifests`` is still imported because ``init``
+# and ``doctor`` read it to report what is installed.
 for owner, module in manifests().items():
     if not module_enabled(owner):
         continue
     for command in module["commands"]:
-        group = typer.Typer(help=command["help"])
-        module_path, attribute = command["register"].split(":", 1)
-        getattr(import_module(module_path), attribute)(group)
-        app.add_typer(group, name=command["name"])
+        # A manifest that still declares a command now points at a module that
+        # does not exist. Fail loudly at import time rather than silently
+        # offering a command that raises when clicked.
+        if command["register"].startswith("deeptutor_cli."):
+            module_path, _, _ = command["register"].partition(":")
+            try:
+                import_module(module_path)
+            except ImportError as exc:  # pragma: no cover - packaging error
+                raise SystemExit(
+                    f"module '{owner}' declares a terminal command "
+                    f"({command['name']}) but {module_path} is not installed. "
+                    "This product is web-only; remove the command from the manifest."
+                ) from exc
 
 register_doctor(app)
 register_init(app)
 module_app = typer.Typer(help="Install, remove and inspect optional modules.")
 app.add_typer(module_app, name="module")
 register_module(module_app)
-
-
-@app.command("run")
-def run_capability(
-    capability: str = typer.Argument(
-        ...,
-        help=(
-            "Capability name (e.g. chat, deep_solve, deep_question, "
-            "deep_research, visualize, math_animator, mastery_path)."
-        ),
-    ),
-    message: str = typer.Argument(..., help="Message to send."),
-    session: str | None = typer.Option(None, "--session", help="Existing session id."),
-    workspace: str | None = typer.Option(
-        None, "--workspace", help="Registered workspace id; omit for default."
-    ),
-    tool: list[str] = typer.Option([], "--tool", "-t", help="Enabled tool(s)."),
-    kb: list[str] = typer.Option([], "--kb", help="Knowledge base name."),
-    notebook_ref: list[str] = typer.Option([], "--notebook-ref", help="Notebook references."),
-    history_ref: list[str] = typer.Option([], "--history-ref", help="Referenced session ids."),
-    language: str = typer.Option("en", "--language", "-l", help="Response language."),
-    config: list[str] = typer.Option([], "--config", help="Capability config key=value."),
-    config_json: str | None = typer.Option(
-        None, "--config-json", help="Capability config as JSON."
-    ),
-    fmt: str = typer.Option("rich", "--format", "-f", help="Output format: rich | json."),
-) -> None:
-    """Run any capability in a single turn (agent-first entry point)."""
-    from deeptutor.app import DeepTutorApp
-
-    from .common import run_turn_and_render
-
-    request = build_turn_request(
-        content=message,
-        capability=capability,
-        session_id=session,
-        tools=tool,
-        knowledge_bases=kb,
-        language=language,
-        config_items=config,
-        config_json=config_json,
-        notebook_refs=notebook_ref,
-        history_refs=history_ref,
-    )
-    client = DeepTutorApp(workspace_id=workspace) if workspace is not None else DeepTutorApp()
-    maybe_run(run_turn_and_render(app=client, request=request, fmt=fmt))
 
 
 @app.command()
@@ -166,9 +131,8 @@ def serve(
     port: int | None = typer.Option(None, help="Port number."),
     reload: bool = typer.Option(False, help="Enable auto-reload for development."),
 ) -> None:
-    """Start the DeepTutor API server."""
+    """Start only the DeepTutor API server (no frontend)."""
     import asyncio
-    import sys
 
     from deeptutor.modules.catalog import require_module
 
@@ -207,6 +171,12 @@ def serve(
 
     # ws_max_size tracks the configured chat-attachment total so base64
     # uploads fit in one WS frame (uvicorn defaults to 16MB).
+    #
+    # These three flags are not optional tuning. Without timeout_keep_alive the
+    # proxy's 5s idle reap and uvicorn's 5s default race on the same socket and
+    # the loser gets ECONNRESET, surfaced to the user as "Failed to load
+    # sessions". A rewrite of this file once dropped all three; the launch-point
+    # test caught it, which is exactly why that test exists.
     uvicorn.run(
         "deeptutor.api.main:app",
         host=host,
@@ -224,13 +194,6 @@ def serve(
 
 
 def main() -> None:
-    # Piped or redirected output on Windows uses the ANSI code page, and a
-    # character outside it (an emoji in a model reply, CJK text on cp1252)
-    # raised UnicodeEncodeError and aborted the command with exit code 1.
-    # Replace such characters instead, as `deeptutor start` already does (#702).
-    from deeptutor.utils.console_encoding import relax_console_encoding
-
-    relax_console_encoding()
     app()
 
 

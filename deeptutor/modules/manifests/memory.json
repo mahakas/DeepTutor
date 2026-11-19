@@ -35,17 +35,14 @@
       "order": 662
     }
   ],
-  "commands": [
-    {
-      "name": "memory",
-      "register": "deeptutor_cli.memory:register",
-      "help": "Manage memory."
-    }
-  ],
+  "commands": [],
   "navigation": [
     "/memory"
   ],
   "services": [],
   "requirements": [],
-  "executables": []
+  "executables": [],
+  "notes": [
+    "Web-only product: terminal commands removed. The HTTP routes above are the product surface; the CLI exists only to launch the app."
+  ]
 }

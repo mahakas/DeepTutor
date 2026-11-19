@@ -165,13 +165,7 @@
       "order": 830
     }
   ],
-  "commands": [
-    {
-      "name": "kb",
-      "register": "deeptutor_cli.kb:register",
-      "help": "Manage kb."
-    }
-  ],
+  "commands": [],
   "navigation": [
     "/knowledge-bases"
   ],
@@ -201,5 +195,8 @@
   "http_paths": [
     "/api/subagents/connections",
     "/api/settings/workspace/knowledge-bases"
+  ],
+  "notes": [
+    "Web-only product: terminal commands removed. The HTTP routes above are the product surface; the CLI exists only to launch the app."
   ]
 }

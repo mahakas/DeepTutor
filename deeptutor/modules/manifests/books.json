@@ -51,13 +51,7 @@
       "order": 649
     }
   ],
-  "commands": [
-    {
-      "name": "book",
-      "register": "deeptutor_cli.book:register",
-      "help": "Manage book."
-    }
-  ],
+  "commands": [],
   "navigation": [
     "/books",
     "/learning/books"
@@ -67,5 +61,8 @@
   "executables": [],
   "http_paths": [
     "/api/multi-user/admin/books"
+  ],
+  "notes": [
+    "Web-only product: terminal commands removed. The HTTP routes above are the product surface; the CLI exists only to launch the app."
   ]
 }

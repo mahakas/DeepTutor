@@ -99,13 +99,7 @@
       "order": 816
     }
   ],
-  "commands": [
-    {
-      "name": "partner",
-      "register": "deeptutor_cli.partner:register",
-      "help": "Manage partner."
-    }
-  ],
+  "commands": [],
   "navigation": [
     "/partners"
   ],
@@ -135,5 +129,8 @@
     "aiohttp>=3.10.0,<4.0.0",
     "PyJWT[crypto]>=2.8.0,<3.0.0"
   ],
-  "executables": []
+  "executables": [],
+  "notes": [
+    "Web-only product: terminal commands removed. The HTTP routes above are the product surface; the CLI exists only to launch the app."
+  ]
 }

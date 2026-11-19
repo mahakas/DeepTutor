@@ -58,14 +58,11 @@
 
 默认工作区为兼容历史数据保留原存储路径；其文件夹位置设置影响展示给模型的文件和 `outputs/`。若要将默认工作区的完整学习数据放进一个自建目录，应使用「数据迁移」。
 
-## CLI 与 Python SDK
+## 浏览器与 Python SDK
 
-```bash
-deeptutor run chat "解释傅里叶变换" --workspace ws_...
-deeptutor chat --workspace ws_...
-```
+在浏览器中切换工作区：**学习 → 工作区** 选择器会记住你的选择，之后每次对话都在该工作区中进行。未选择时使用默认工作区。
 
-CLI 不指定 `--workspace` 时使用默认工作区。
+> 本项目的终端命令 `deeptutor run` 与 `deeptutor chat` 已在改为纯网页产品时移除。`deeptutor` 现在只负责启动应用（`start` / `stop` / `serve` / `init` / `doctor` / `module`）。
 
 ```python
 from deeptutor.app import DeepTutorApp

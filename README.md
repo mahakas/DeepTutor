@@ -146,7 +146,7 @@
 
 > **[2026.6.14]** [v1.4.5](https://github.com/HKUDS/DeepTutor/releases/tag/v1.4.5) — Guided Learning rebuilt on the chat agent loop with a hard per-type mastery gate and a `/learning` dashboard, a new loop-plugin framework, plus Markdown export / save-to-notebook for Partner conversations.
 
-> **[2026.6.13]** [v1.4.4](https://github.com/HKUDS/DeepTutor/releases/tag/v1.4.4) — Install community skills from [ClawHub](https://clawhub.ai/) with `deeptutor skill install` behind a security gate, plus real in-browser DOCX/XLSX previews for knowledge-base files.
+> **[2026.6.13]** [v1.4.4](https://github.com/HKUDS/DeepTutor/releases/tag/v1.4.4) — Install community skills from [ClawHub](https://clawhub.ai/) behind a security gate, plus real in-browser DOCX/XLSX previews for knowledge-base files.
 
 > **[2026.6.12]** [v1.4.3](https://github.com/HKUDS/DeepTutor/releases/tag/v1.4.3) — TutorBot becomes **Partners** on a production-grade IM pipeline (15 channels, live streaming), Chat moves to a single agent loop, real per-user isolation, and a rebuilt Visualize.
 
@@ -330,16 +330,17 @@ Use `deeptutor start` without `--dev` for a production build. Optional dependenc
 <details>
 <summary><b>CLI — Terminal and Agent Use</b></summary>
 
-For a minimal terminal installation, use the core wheel; no Node.js or Web frontend is required:
+DeepTutor runs in a browser and therefore needs Node.js alongside Python:
 
 ```bash
 mkdir -p my-deeptutor && cd my-deeptutor
 python -m pip install -U deeptutor
-deeptutor init --cli
-deeptutor chat
+deeptutor init          # first-run settings
+deeptutor start         # backend + frontend, then open the browser
 ```
 
-Core includes Chat, Ask Questions, the CLI, and the SDK; other capabilities and management commands require their matching feature modules. For the current `dev` source installation and optional dependencies, see the [CLI-only guide](https://docs.deeptutor.info/get-started/cli-only/). The [CLI reference](#%EF%B8%8F-deeptutor-cli--agent-native-interface) below covers one-shot runs and machine-readable output.
+`deeptutor` is the launcher, not a second interface — see the
+[command reference](#%EF%B8%8F-the-deeptutor-command--launching-the-web-app).
 
 </details>
 
@@ -473,7 +474,7 @@ Book turns selected sources into an interactive **living book** — not a static
 <img src="assets/figs/web-dev/book-widget.png" alt="Book interactive widget block" width="31%">
 </p>
 
-Each chapter compiles into editable typed blocks — text, callouts, quizzes, flash cards, timelines, code, figures, interactive HTML, animations, concept graphs, deep dives, and user notes — with its own Page Chat. Review and undo chapter or section edits; insert, move, regenerate, rewrite, or switch blocks; selected passages enter a learning-capture inbox. Progress, bookmarks, quiz attempts, captures, and Page Chat stay private per reader even when an admin book is shared read-only or for collaborative editing; shared deletion stays admin-only. Any book exports to Markdown, long compiles pause and resume, `deeptutor book health` flags source drift, and `deeptutor book refresh-fingerprints` refreshes the source baseline.
+Each chapter compiles into editable typed blocks — text, callouts, quizzes, flash cards, timelines, code, figures, interactive HTML, animations, concept graphs, deep dives, and user notes — with its own Page Chat. Review and undo chapter or section edits; insert, move, regenerate, rewrite, or switch blocks; selected passages enter a learning-capture inbox. Progress, bookmarks, quiz attempts, captures, and Page Chat stay private per reader even when an admin book is shared read-only or for collaborative editing; shared deletion stays admin-only. Any book exports to Markdown, long compiles pause and resume, and the book's **Health** panel flags source drift and can refresh the source baseline.
 
 </details>
 
@@ -507,7 +508,7 @@ Native LightRAG queries and incremental indexing require the embedding configura
 
 OpenAI-compatible HTTP embedding responses with explicit vector indices are restored to input order. Repeated, missing, or invalid indices are rejected before the vectors reach indexing; index-free proxy responses retain positional ordering. If a gateway previously returned reordered indexed vectors, rebuild affected indexes to replace their old text/vector associations. Existing index files are preserved.
 
-**Scoring a knowledge base.** With several engines available, "which one retrieves best here?" is an empirical question — so `deeptutor kb eval` answers it. Write a QA set (one JSON object per line: a `query` plus the `gold` passages an ideal retrieval should return), then score the KB with `deeptutor kb eval <name> --dataset qa.jsonl --top-k 5 [--mode hybrid] [--save baseline.json]`. Each case is retrieved through the same path a chat turn uses, its ranked citations are matched against the gold passages using exact text or lexical overlap (thresholds are tunable with `--min-ratio`; semantic equivalence is not assessed), and the run reports **Recall@k / Precision@k / nDCG@k / MRR / MAP / Hit@k**. Metrics are pure functions over the ranking; no model judges the output. Compare saved reports with `deeptutor kb eval-diff baseline.json candidate.json` for per-metric and per-case changes. Use `--rewrite off` or `--rewrite standalone` on `kb eval` to compare original and rewritten queries; reports retain rewrite provenance. Cases whose search failed (a missing index, bad credentials) carry no score and are reported separately rather than dragging the means down. PageIndex uses reasoning as retrieval and returns no ranked chunks, so it is excluded.
+**Scoring a knowledge base.** With several engines available, "which one retrieves best here?" is an empirical question, so each knowledge base has a **Retrieval quality** panel. Load a QA set (one JSON object per line: a `query` plus the `gold` passages an ideal retrieval should return), pick the mode and `top-k`, and score it. Each case is retrieved through the same path a chat turn uses, its ranked citations are matched against the gold passages using exact text or lexical overlap, and the run reports **Recall@k / Precision@k / nDCG@k / MRR / MAP / Hit@k**. Metrics are pure functions over the ranking; no model judges the output. Saved runs are comparable per metric and per case, and the query-rewrite mode can be compared the same way. Cases whose search failed (a missing index, bad credentials) carry no score and are reported separately rather than dragging the means down. PageIndex uses reasoning as retrieval and returns no ranked chunks, so it is excluded.
 
 ```jsonl
 {"query": "Why do transformers scale attention?", "gold": ["Scaling keeps the dot products from growing with the dimension."]}
@@ -696,160 +697,37 @@ For split private/public origins, set `auth.private_login_hosts` (or `AUTH_PRIVA
 
 </details>
 
-## ⌨️ DeepTutor CLI — Agent-Native Interface
+## ⌨️ The `deeptutor` command — launching the web app
 
-One `deeptutor` binary, two ways in: an interactive **REPL** for people who live in the terminal, and structured **JSON** for other agents that drive DeepTutor as a tool. Same capabilities, tools, and knowledge bases either way.
-
-<details>
-<summary><b>Drive it yourself</b></summary>
-
-`deeptutor chat` opens an interactive REPL and selects a mode with `--capability`; `deeptutor run <capability> "<message>"` takes that capability as its first positional argument and exits after one turn. Both accept `--tool`, `--kb`, `--config`, and `--workspace` to select a registered workspace.
+This project is a **web application**. You use it in a browser; the `deeptutor`
+command exists to start, stop and operate that application, not to offer a second
+terminal interface.
 
 ```bash
-deeptutor chat                                              # interactive REPL
-deeptutor chat --capability deep_solve --kb my-kb
-deeptutor run chat "Explain the Fourier transform" --kb textbook
-deeptutor run chat "Find recent work beyond this material" --kb textbook
-deeptutor run deep_research "Survey 2026 papers on RAG" \
-  --config mode=report --config depth=standard
+deeptutor start              # start backend + frontend and open the browser
+deeptutor start --detach     # leave it running in the background
+deeptutor stop               # stop a detached instance
+deeptutor serve              # backend only (no frontend)
 ```
 
-`--kb` supplies context for automatic RAG and Knowledge Frontier tools; Frontier needs both knowledge and research modules. `--tool` selects user-toggleable tools. Enabled modules also provide KB, session, partner, skill, notebook, memory, and config commands.
-
-</details>
-
-<details>
-<summary><b>Let an agent drive it</b></summary>
-
-DeepTutor is built to be *operated by another agent*. Add `--format json` to any `run` and each turn streams **NDJSON — one event per line** (`content`, `tool_call`, `tool_result`, `done`, …), every line tagged with its `session_id`. Runs are headless-safe: an `ask_user` pause with no TTY auto-resolves with an empty reply instead of hanging.
-
-```bash
-# One shot, machine-readable
-deeptutor run deep_solve "Find d/dx[sin(x^2)]" --tool reason --format json
-
-# Chain turns in one stateful session — capture the id, reuse it
-SID=$(deeptutor run deep_research "Survey 2026 papers on RAG" \
-  --config mode=report --config depth=standard --format json \
-  | jq -r 'select(.type=="done").session_id')
-deeptutor run deep_question "Quiz me on that survey" --session "$SID" --format json
-```
-
-The repo ships a root [`SKILL.md`](SKILL.md) — a compact handover doc for the CLI. Ask your agent to read it explicitly; its [Agent Setup guide](docs-for-dev/AGENT_SETUP.md) covers installation and configuration. You can also wrap `deeptutor run` as a tool in a LangChain / AutoGen loop. Full recipes: [Agent Handoff](https://deeptutor.info/docs/cli/agent-handoff/).
-
-</details>
-
-<details>
-<summary><b>Opt-in visual review for Manim animations</b></summary>
-
-Set `enable_visual_review=true` to inspect rendered frames for overlap, readability,
-and framing, then feed detected issues into the existing code repair loop:
-
-```bash
-deeptutor run math_animator "Animate a sine wave" --config enable_visual_review=true
-deeptutor run visualize "Animate a sine wave" \
-  --config render_mode=manim_video --config enable_visual_review=true
-```
-
-The option defaults to `false`. It also works with `output_mode=image` for
-`math_animator` and `render_mode=manim_image` for `visualize`. Other visualizers,
-including the general `auto` loop, ignore it. Manim's optional dependencies are
-still required.
-
-For SDK turns, pass `config={"enable_visual_review": True}` in the `TurnRequest`
-sent to `DeepTutorApp.start_turn()`. API clients use the same `config` object with
-JSON `true`. For book animation blocks, set
-`params={"enable_visual_review": True}` on the animation `Block`.
-
-Review adds vision model calls and may add repair calls and re-renders, increasing
-cost and latency. It uses the existing limit of four retries, with a 120-second
-review timeout and a 180-second repair timeout. If no frames are available or the
-configured review model cannot inspect images, review is skipped with a summary.
-An unsuccessful review after all retries returns the best available render and its
-failed review result; a review timeout follows the existing render error/retry path.
-Capability results expose `render.visual_review`; book blocks retain the same
-review data in `metadata.visual_review` (`null` when review did not run).
-
-</details>
-
-<details>
-<summary><b>Command reference</b></summary>
-
-The table covers the full installation and optional add-ons; commands and capabilities require their modules to be enabled. Core provides `chat` and `ask_questions`.
-
-| Command | Description |
-|:---|:---|
-| `deeptutor init [--non-interactive] [--home PATH]` | Run the setup wizard, or create missing defaults without prompts |
-| `deeptutor doctor [--online]` | Check whether the runtime is ready to start a session; `--online` also probes the configured model provider, `--format json` prints the report |
-| `deeptutor start [--home PATH] [--dev] [--detach] [--no-browser]` | Launch backend + frontend together; optionally detach or suppress browser opening |
+| Command | What it does |
+|---------|--------------|
+| `deeptutor start [--home PATH] [--dev] [--detach] [--no-browser]` | Launch backend + frontend together; `--dev` uses the Next.js dev server |
 | `deeptutor stop [--home PATH]` | Stop a launcher started with `--detach` |
-| `deeptutor serve [--port PORT]` | Start only the FastAPI backend |
-| `deeptutor module list/install/uninstall/enable/disable` | Inspect modules and change them with DeepTutor stopped; source checkouts support enable/disable |
-| `deeptutor workspace show/set/reset` | Inspect, select, or restore the per-user Content Workspace |
-| `deeptutor run <capability> <message>` | Run a single capability turn (`chat`, `ask_questions`, `deep_solve`, `deep_question`, `deep_research`, `visualize`, `math_animator`, `video_lesson`, `mastery_path`, `immersive_reading`, `audio_overview`); add `--format json` for NDJSON output |
-| `deeptutor chat` | Interactive REPL with capability, tool, KB, notebook, and history controls |
-| `deeptutor partner list/create/start/stop` | Manage IM-connected partners |
-| `deeptutor kb list/info/create/connect-kiwix/add/search/eval/eval-diff/set-default/delete/list-sources/sync` | Manage knowledge bases, connect Kiwix archives, score and compare retrieval runs, and synchronize registered GitHub/web sources (with source add/remove commands) |
-| `deeptutor skill search/install/list/remove/login/logout/publish/update` | Manage skills, install from hubs, and publish your own (`eduhub:<slug>` by default, see Ecosystem) |
-| `deeptutor memory show/clear` | Inspect L2/L3 memory docs or clear L1/all memory |
-| `deeptutor session list/show/open/rename/delete` | Manage shared sessions |
-| `deeptutor notebook list/create/show/add-md/replace-md/remove-record` | Manage notebooks from Markdown files |
-| `deeptutor book list/health/refresh-fingerprints` | Inspect books and refresh source fingerprints |
-| `deeptutor plugin list/info/state/search/show/install/approve/enable/disable/rollback/uninstall` | Inspect tools and capabilities; manage reviewed plugin packages and their permission approvals |
-| `deeptutor config show [--home PATH]` | Show resolved runtime configuration with credentials redacted |
-| `deeptutor config providers` | List supported setup providers and defaults as JSON |
-| `deeptutor config apply FILE [--check] [--home PATH]` | Apply setup JSON without prompts, or validate it without writing settings |
-| `deeptutor provider login <provider>` | Provider auth (`openai-codex` OAuth login; `github-copilot` GitHub device login; `codebuddy` validates CodeBuddy SDK auth and starts login when needed) |
+| `deeptutor serve [--host H] [--port P] [--reload]` | Start only the FastAPI backend |
+| `deeptutor init [--non-interactive] [--home PATH]` | Create or update the first-run settings files |
+| `deeptutor doctor` | Check whether this installation is ready to start |
+| `deeptutor module install/remove/list` | Install or remove optional modules |
 
-GitHub Copilot credentials belong to the signed-in DeepTutor owner and live only at
-`<runtime-home>/data/system/user-secrets/<owner-id>/private/github-copilot/credentials.v1.json`,
-outside sandbox workspaces. CLI/admin partners use the administrator's credentials;
-other users sign in separately, and Copilot profiles cannot be shared through model grants.
-External nanobot/Copilot token files are never imported: after upgrading, run
-`deeptutor provider login github-copilot` again.
+Everything else happens in the browser: chatting, knowledge bases, sessions,
+skills, notebooks, memory, providers and configuration all have web surfaces, and
+those surfaces are the product.
 
-Login validates inference with a currently discovered model; `init` validates the selected
-model and aborts on failure without saving the draft configuration. Successful GitHub
-authentication alone does not establish Copilot model access (the saved login is retained
-if validation fails). Runtime requests follow the API endpoint returned by token exchange,
-including refreshes, and respect each model's Responses/Chat Completions endpoint metadata.
-
-Copilot-specific Responses compatibility is applied at dispatch without rewriting stored history.
-
-</details>
-
-<details>
-<summary><b>CLI-only distribution</b></summary>
-
-The core wheel supplies CLI and SDK; `deeptutor-cli` is a compatibility metapackage. Source exposes all checked-in modules, so install their Python dependencies and skip frontend setup for CLI use:
-
-```bash
-python -m pip install -r requirements/full.txt
-python -m pip install -e . --no-deps
-```
-
-For a minimal installation, use the core wheel. Optional distributions contribute tools, capabilities, API routes, background services, and navigation. Modules share one Python environment and must match the core version. `deeptutor[full]` selects the common app modules at installation; individual features can still be removed later.
-
-Stop DeepTutor (`Ctrl+C` in its terminal), then use the same Python environment and `DEEPTUTOR_HOME`:
-
-```bash
-deeptutor module list                       # installed / enabled / ready
-deeptutor module disable research           # hide and deactivate; keep code
-deeptutor module enable research            # restore it and required modules
-
-# Package installations only; source checkouts use enable / disable:
-deeptutor module install solve              # install the matching module and dependencies
-deeptutor module uninstall solve --dry-run  # inspect the plan and dependency blockers
-deeptutor module uninstall solve            # remove only this module's distribution
-deeptutor chat                              # restart the CLI; use start for an installed Web app
-```
-
-Examples: `solve`, `research`, `questions`, `knowledge`, `parsing`, `reading`, `mastery`, `books`, `memory`, `notebook`, and `partners`. Dependents block removal; core cannot be removed through the module command. Disabling or uninstalling preserves settings, conversations, knowledge bases, and generated files. Shared third-party dependencies are retained.
-
-**In the browser:** **Settings → Runtime status → Modules** shows module status and the corresponding terminal commands. Package changes require a stopped environment and are performed in the CLI. **Chat → Customize page** and **Learning → New learning activity → Customize page** change personal page choices immediately; hiding an entry does not uninstall its module or revoke access.
-
-The 1.7.0 package family uses matching versions across core and feature wheels. For local wheel installation, pass `--wheelhouse /path/to/wheels` to `module install`. See [module installation and source development](docs-for-dev/MODULES.md) for building the wheels and deployment details.
-
-</details>
+> **Removed in this release:** the terminal product was removed — `deeptutor chat`,
+> `deeptutor run`, and the `kb`, `skill`, `plugin`, `config`, `session`,
+> `provider`, `workspace`, `notebook`, `book`, `partner` and `memory` command
+> groups no longer exist. If you were using DeepTutor from a terminal, the web
+> app is the replacement, and `git log` still has the previous implementation.
 
 ## 🧩 Ecosystem — EduHub & the Skills Community
 
@@ -860,22 +738,15 @@ DeepTutor skills use the open **Agent-Skills** format — a folder with a `SKILL
 
 [**EduHub**](https://eduhub.deeptutor.info/) is the community hub DeepTutor launched for sharing teaching-oriented agent skills — Socratic tutors, flashcard builders, essay feedback, exam blueprints, concept explainers, and more. It is built into DeepTutor, so there's nothing to configure: a bare slug or an `eduhub:` prefix resolves to it.
 
-**Find and install** — in the browser, open **Personalization → Skills → Import from EduHub** to browse the catalog and download a skill straight into your library. From the terminal:
+**Find and install** — open **Personalization → Skills → Import from EduHub**. The
+browser catalog searches EduHub (the default hub), shows what each skill does, and
+installs it into your library after verification. A bare slug or an `eduhub:`
+prefix resolves to EduHub; other ClawHub-compatible registries can be added as
+hubs in the same panel.
 
-```bash
-deeptutor skill search "socratic tutor"               # search EduHub (the default hub)
-deeptutor skill install socratic-tutor                # fetch → verify → register
-deeptutor skill install eduhub:socratic-tutor@1.2.0   # pin a hub and a version
-deeptutor skill list                                  # local skills with their hub provenance
-```
-
-**Publish your own** — package a `SKILL.md` and share it back to the community:
-
-```bash
-deeptutor skill login                                 # browser sign-in to EduHub
-deeptutor skill publish ./my-skill                    # interactive: pick a track + tags, then upload
-deeptutor skill update                                # roll back or release a new version
-```
+**Publish your own** — package a `SKILL.md` and share it back. Sign in to EduHub
+from the Skills panel, then publish: pick a track and tags in the form and upload.
+Releasing a new version and rolling one back happen in the same view.
 
 EduHub is also a standalone, ClawHub-compatible registry, so agents that aren't DeepTutor (Claude Code, Codex, …) can use it directly through the `eduhub` CLI — `npx eduhub install socratic-tutor`.
 
@@ -898,16 +769,10 @@ In multi-user deployments, browser imports land in the authenticated caller's sk
 <details>
 <summary><b>Also compatible with ClawHub</b></summary>
 
-Because DeepTutor speaks the open Agent-Skills format, **[ClawHub](https://clawhub.ai/)** works as a first-class source too — it's built in alongside EduHub. Pick it with the hub prefix:
-
-```bash
-deeptutor skill search "git release notes" --hub clawhub
-deeptutor skill install clawhub:git-release-notes@1.0.1
-deeptutor skill install clawhub:udiedrichsen/stock-analysis
-```
+Because DeepTutor speaks the open Agent-Skills format, **[ClawHub](https://clawhub.ai/)** works as a first-class source too — it's built in alongside EduHub. Switch the source in the Skills panel's hub selector and search there.
 
 When several publishers share the same slug, search shows each publisher and a
-fully scoped install ref (`clawhub:<ownerHandle>/<slug>`).
+fully scoped reference (`clawhub:<ownerHandle>/<slug>`).
 
 Add more registries in `data/user/settings/skill_hubs.json`: a `type: "clawhub"` entry points at any compatible HTTP API (EduHub and ClawHub both speak it), `type: "command"` wraps whatever fetch CLI a registry ships, and `"default"` chooses the hub used for bare slugs. All of them feed the same import gate.
 
