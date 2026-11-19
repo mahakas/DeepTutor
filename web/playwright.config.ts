@@ -19,9 +19,20 @@ export default defineConfig({
   },
   projects: [
     {
+      name: "rtl-chromium",
+      testMatch: "**/rtl.audit.ts",
+      use: {
+        ...devices["Desktop Chrome"],
+        launchOptions: {
+          executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
+        },
+      },
+    },
+    {
       name: "ui-audit",
       testMatch: "**/*.audit.ts",
       testIgnore: [
+        "**/rtl.audit.ts",
         "**/epub-reader.audit.ts",
         "**/e2e/turn-lifecycle.audit.ts",
         "**/e2e/multi-worker-turns.audit.ts",

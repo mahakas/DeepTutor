@@ -16,7 +16,10 @@ describe.each(['ltr', 'rtl'] as const)('%s note insertion preview', dir => {
     { left: 200, right: 900, ltr: 'inline', rtl: 'inline' },
   ])('chooses an available logical side for $left–$right', geometry => {
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', { configurable: true, value: vi.fn() })
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(geometry as DOMRect)
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      left: geometry.left, right: geometry.right, width: geometry.right - geometry.left,
+      top: 0, bottom: 400, height: 400, x: geometry.left, y: 0, toJSON() {},
+    })
     const { container } = render(<div dir={dir}>
       <NoteInsertMenu items={[item]} selectedIndex={0} loadingState="loaded" onItemClick={vi.fn()} />
     </div>)
