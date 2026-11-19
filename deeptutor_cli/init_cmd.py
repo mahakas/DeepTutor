@@ -185,7 +185,7 @@ def _github_copilot_step(
             )
         models = asyncio.run(list_github_copilot_models())
         if not models:
-            raise RuntimeError("No usable GitHub Copilot models are available for this account.")
+            raise RuntimeError("هیچ مدل قابل‌استفادهٔ GitHub Copilot برای این حساب در دسترس نیست.")
         wiz.ok(console, strings["init.fetch_models_ok"].format(count=len(models)))
     except (httpx.HTTPError, OSError, RuntimeError, ValueError, KeyError) as exc:
         wiz.fail(console, strings["init.copilot_login_fail"].format(error=str(exc)[:200]))
@@ -638,8 +638,8 @@ def run_init(
 def register(app: typer.Typer) -> None:
     @app.command("init")
     def init_command(
-        cli: bool = typer.Option(False, "--cli", help="Initialize for CLI-only use."),
-        home: Path | None = typer.Option(None, "--home", help="Runtime workspace root."),
+        cli: bool = typer.Option(False, "--cli", help="راه‌اندازی بدون باز کردن مرورگر."),
+        home: Path | None = typer.Option(None, "--home", help="ریشهٔ فضای کاری زمان اجرا."),
         non_interactive: bool = typer.Option(
             False,
             "--non-interactive",
