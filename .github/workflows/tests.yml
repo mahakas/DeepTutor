@@ -317,7 +317,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements/full.txt', 'requirements/cli.txt', 'requirements/partners.txt', 'pyproject.toml') }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('requirements/full.txt', 'requirements/cli.txt', 'requirements/partners.txt', 'requirements/studio.txt', 'pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
@@ -326,6 +326,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements/full.txt
           pip install -r requirements/partners.txt
+          pip install -r requirements/studio.txt
           pip install pytest pytest-asyncio
 
       - name: Install optional fastapi-guard
