@@ -63,6 +63,18 @@ def main() -> int:
     ap.add_argument("--bundle", default="app")
     ap.add_argument("--force", action="store_true", help="overwrite existing translations")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument(
+        "--by-value",
+        action="store_true",
+        help=(
+            "Match batch entries against the English bundle's *displayed* text "
+            "instead of its keys. Needed for entries whose value differs from "
+            "their key: the English bundle uses those to rename a brand term "
+            "(key 'No notebooks yet' displays 'No favorites collections yet'), "
+            "so the sentence a reader sees, and the sentence a translator "
+            "translates, is the value."
+        ),
+    )
     args = ap.parse_args()
 
     en = flatten(json.loads((LOCALES / "en" / f"{args.bundle}.json").read_text(encoding="utf-8")))
@@ -76,6 +88,22 @@ def main() -> int:
     errors: list[str] = []
     added = skipped = 0
 
+    if args.by_value:
+        # One display sentence can back several keys; all of them get the
+        # translation, and each is validated on its own.
+        by_display = {}
+        for key, value in en.items():
+            by_display.setdefault(str(value), []).append(key)
+        expanded = {}
+        for source, target in batch.items():
+            hits = by_display.get(source)
+            if not hits:
+                errors.append(f"unknown display text (not in en bundle): {source!r}")
+                continue
+            for key in hits:
+                expanded[key] = target
+        batch = expanded
+
     for source, target in batch.items():
         if source not in en:
             errors.append(f"unknown key (not in en bundle): {source!r}")
@@ -83,7 +111,12 @@ def main() -> int:
         if not isinstance(target, str) or not target.strip():
             errors.append(f"empty translation: {source!r}")
             continue
-        want = set(PLACEHOLDER.findall(source))
+        # Placeholders are checked against the text the reader actually sees.
+        # For a "renamed" entry -- one whose value differs from its key, which
+        # is how the English bundle renames a brand term -- the value is the
+        # source sentence, and the key is only a lookup token.
+        visible = str(en[source])
+        want = set(PLACEHOLDER.findall(visible))
         got = set(PLACEHOLDER.findall(target))
         if want != got:
             errors.append(
