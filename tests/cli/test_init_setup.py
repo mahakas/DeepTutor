@@ -136,3 +136,11 @@ def test_a_home_with_an_unreadable_settings_file_still_starts_from_clean(
     (settings / "model_catalog.json").write_text("{broken JSON", encoding="utf-8")
     result = _init(runtime_home)
     assert result.exit_code == 0, result.output
+
+    # Recovering must not mean destroying. The unreadable bytes are the only
+    # place a stored API key still exists, so they are moved aside rather than
+    # overwritten, and a fresh catalog is seeded next to them.
+    backups = list(settings.glob("model_catalog.json.corrupt-*"))
+    assert len(backups) == 1, f"expected one preserved copy: {backups}"
+    assert backups[0].read_text(encoding="utf-8") == "{broken JSON"
+    assert (settings / "model_catalog.json").exists()

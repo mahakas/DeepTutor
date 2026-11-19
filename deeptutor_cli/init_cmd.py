@@ -481,9 +481,27 @@ def run_init(
 
     from deeptutor.runtime.banner import labels_for, print_banner, resolve_language
     from deeptutor.services.config import get_model_catalog_service, get_runtime_settings_service
+    from deeptutor.services.config.model_catalog import CatalogUnreadable
     from deeptutor.services.setup import init_user_directories
 
-    init_user_directories(runtime_home)
+    try:
+        init_user_directories(runtime_home)
+    except CatalogUnreadable as exc:
+        # ``init`` is the command an operator runs to get a workspace into a
+        # working state, so it recovers rather than refusing: the damaged file
+        # is moved aside under a timestamped name (keeping any API key in it
+        # recoverable) and a fresh catalog is seeded. This is the only place
+        # that overwrites a corrupt catalog, and it never deletes the bytes.
+        backup = exc.path
+        return_path = get_model_catalog_service().preserve_unreadable_and_reset()
+        Console(stderr=True).print(
+            f"[yellow]هشدار:[/] پروندهٔ مدل قابل خواندن نبود و به کنار منتقل شد: "
+            f"[bold]{return_path}[/bold]"
+        )
+        Console(stderr=True).print(
+            "  کلیدهای API داخل آن پرونده باقی مانده‌اند؛ پس از تعمیر، آن را به "
+            f"{backup.name} بازگردانید."
+        )
 
     if non_interactive:
         import json
@@ -625,9 +643,9 @@ def register(app: typer.Typer) -> None:
         non_interactive: bool = typer.Option(
             False,
             "--non-interactive",
-            help="Create missing defaults without prompts; preserves saved settings.",
+            help="ساخت پیش‌فرض‌های غایب بدون پرسش؛ تنظیمات ذخیره‌شده حفظ می‌شوند.",
         ),
     ) -> None:
-        """Create or update data/user/settings for this workspace."""
+        """ساخت یا به‌روزرسانی data/user/settings برای این فضای کاری."""
 
         run_init(cli_only=cli, home=home, non_interactive=non_interactive)

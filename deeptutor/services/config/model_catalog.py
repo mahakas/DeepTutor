@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import tempfile
 import threading
+import time
 from typing import Any
 from uuid import uuid4
 
@@ -240,6 +241,25 @@ def _connection_base_url_for(service_name: str, connection_base: str) -> str:
     return connection_base.rstrip("/") + _CONNECTION_BASE_SUFFIX.get(service_name, "")
 
 
+class CatalogUnreadable(RuntimeError):
+    """A model catalog file exists but cannot be parsed.
+
+    Raised rather than falling back to defaults so the file is never overwritten
+    with an empty catalog -- doing so would silently discard the API keys it
+    holds. Recovering is a deliberate act: fix the JSON, or move the file aside
+    and let the app seed a fresh one.
+    """
+
+    def __init__(self, path: Path, cause: Exception) -> None:
+        self.path = path
+        self.cause = cause
+        super().__init__(
+            f"model catalog at {path} exists but could not be read "
+            f"({cause}). It has been left untouched so the credentials inside it "
+            f"are not lost. Repair the file, or move it aside to start over."
+        )
+
+
 def _default_catalog() -> dict[str, Any]:
     return {
         "version": 1,
@@ -289,13 +309,44 @@ class ModelCatalogService:
             return catalog
 
     def _read_existing_catalog(self) -> dict[str, Any]:
+        """Return the stored catalog, or ``{}`` when there is none to read.
+
+        Unreadable-but-present is *not* the same as absent, and the difference
+        is expensive: ``load`` treats ``{}`` as a fresh install and immediately
+        writes a default catalog over the file. A single truncated write -- a
+        crash, a full disk, a half-finished editor save -- therefore used to
+        destroy every stored API key, with no warning and no backup.
+
+        So a file that exists but does not parse raises instead. The caller
+        decides what to do with a corrupt catalog; it does not get silently
+        replaced with an empty one.
+        """
         if not self.path.exists() or self.path.stat().st_size == 0:
             return {}
         try:
             loaded = json.loads(self.path.read_text(encoding="utf-8"))
-        except (json.JSONDecodeError, UnicodeDecodeError):
-            return {}
-        return loaded if isinstance(loaded, dict) else {}
+        except (json.JSONDecodeError, UnicodeDecodeError) as exc:
+            raise CatalogUnreadable(self.path, exc) from exc
+        if not isinstance(loaded, dict):
+            raise CatalogUnreadable(self.path, ValueError("top level is not an object"))
+        return loaded
+
+    def preserve_unreadable_and_reset(self) -> Path:
+        """Move an unreadable catalog aside, then seed a fresh one.
+
+        This is the explicit recovery path. ``load`` refuses to touch a corrupt
+        catalog because overwriting it would destroy the API keys inside it; this
+        method gives an operator-run command (``init``) a safe way forward --
+        the damaged bytes are kept under a timestamped name next to the original,
+        so the keys can still be recovered by hand, and the app can start.
+        """
+        stamp = time.strftime("%Y%m%d-%H%M%S")
+        backup = self.path.with_name(f"{self.path.name}.corrupt-{stamp}")
+        with self._lock:
+            os.replace(self.path, backup)
+            self.save(_default_catalog())
+            self._normalize(self.load())
+        return backup
 
     def save(self, catalog: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
