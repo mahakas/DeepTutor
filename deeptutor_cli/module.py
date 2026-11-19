@@ -12,14 +12,18 @@ from deeptutor.modules.lifecycle import change, plan
 def register(app: typer.Typer) -> None:
     @app.command("list")
     def list_modules():
-        """Show installed, enabled and ready states separately."""
+        """نمایش جداگانهٔ وضعیت نصب، فعال‌بودن و آمادگی."""
         typer.echo(json.dumps(module_statuses(), ensure_ascii=False, indent=2))
 
     def command(action: str):
         def run(
             name: str,
-            dry_run: bool = typer.Option(False, "--dry-run"),
-            wheelhouse: Path | None = typer.Option(None, "--wheelhouse"),
+            dry_run: bool = typer.Option(
+                False, "--dry-run", help="فقط نمایش برنامه، بدون اعمال تغییر."
+            ),
+            wheelhouse: Path | None = typer.Option(
+                None, "--wheelhouse", help="پوشهٔ بسته‌های نصب محلی."
+            ),
         ):
             try:
                 result = (

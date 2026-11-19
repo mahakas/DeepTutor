@@ -514,7 +514,7 @@ def run_init(
                     "ok": True,
                     "status": "initialized",
                     "runtime_home": str(runtime_home),
-                    "next_step": "deeptutor config apply setup.json",
+                    "next_step": "deeptutor start",
                 }
             )
         )

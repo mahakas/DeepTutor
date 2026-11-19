@@ -568,8 +568,10 @@ def test_doctor_online_rich_output_succeeds(monkeypatch) -> None:
     result = runner.invoke(app, ["doctor", "--online"])
 
     assert result.exit_code == 0, result.output
-    assert "PASS" in result.output
-    assert "Provider response" in result.output
+    assert "موفق" in result.output
+    assert "پاسخ ارائه‌دهنده" in result.output
+    assert "مدل پاسخ برگرداند." in result.output
+    assert "Provider response" not in result.output
 
 
 @pytest.mark.asyncio

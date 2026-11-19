@@ -164,8 +164,8 @@ def serve(
         import uvicorn
     except ImportError:
         console.print(
-            "[bold red]Error:[/] API server dependencies not installed.\n"
-            "Run: deeptutor module install server"
+            "[bold red]خطا:[/] وابستگی‌های سرور API نصب نشده‌اند.\n"
+            "اجرا کنید: deeptutor module install server"
         )
         raise typer.Exit(code=1)
 
@@ -177,7 +177,7 @@ def serve(
 
     backend_workers = max(1, int(load_system_settings().get("backend_workers") or 1))
     if reload and backend_workers > 1:
-        console.print("[bold red]Error:[/] --reload cannot be used when backend_workers > 1.")
+        console.print("[bold red]خطا:[/] وقتی backend_workers > 1 است، --reload مجاز نیست.")
         raise typer.Exit(code=2)
 
     # ws_max_size tracks the configured chat-attachment total so base64
