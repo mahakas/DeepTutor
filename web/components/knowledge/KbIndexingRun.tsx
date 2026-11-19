@@ -76,7 +76,7 @@ export default function KbIndexingRun({ kbName, readOnly = false }: { kbName: st
       {error?.key === kbName && (!error.taskId || error.taskId === run?.task_id) && <p role="alert">{t("Could not read indexing state. Refresh and retry.")}</p>}
       {run ? <>
         <p>{t("Run state")}: {t(`indexingState.${run.state}`, { defaultValue: run.state })} · {t("Current phase")}: {t(`indexingPhase.${run.phase}`, { defaultValue: run.phase })}</p>
-        <p>{t("Runtime")}: {Math.max(0, Math.floor((run.finished_at || now) - run.started_at))}s · {t("Since activity")}: {Math.max(0, Math.floor(now - run.last_activity_at))}s · {t("Since measurable progress")}: {Math.max(0, Math.floor(now - run.last_progress_at))}s</p>
+        <p>{t("Runtime")}: {t("{{value}} s", { value: Math.max(0, Math.floor((run.finished_at || now) - run.started_at)) })} · {t("Since activity")}: {t("{{value}} s", { value: Math.max(0, Math.floor(now - run.last_activity_at)) })} · {t("Since measurable progress")}: {t("{{value}} s", { value: Math.max(0, Math.floor(now - run.last_progress_at)) })}</p>
         <p>{run.phase_total ? `${run.phase_current || 0}/${run.phase_total}` : t("Phase progress is indeterminate.")} {t("Phase completion does not mean the whole index is ready.")}</p>
         {run.current_document && <p className="break-words">{t("Document")}: {run.current_document}</p>}
         {run.activity && <p className="break-words">{t("Activity")}: {run.activity}</p>}

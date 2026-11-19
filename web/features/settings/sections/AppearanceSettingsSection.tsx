@@ -47,6 +47,7 @@ export default function AppearanceSettingsPage() {
   const { t } = useTranslation();
   const {
     theme,
+    language,
     contentFontScale,
     contentLineSpacing,
     updateContentFontScale,
@@ -192,13 +193,22 @@ export default function AppearanceSettingsPage() {
               } as CSSProperties
             }
           >
-            <p lang="en">
-              Learning starts with a question. Explore an idea, connect it to
-              what you know, and explain it in your own words.
-            </p>
-            <p lang="zh">
-              学习从一个问题开始。探索新的想法，将它与已有的知识联系起来，再用自己的语言解释。
-            </p>
+            {language === "fa" ? (
+              <p lang="fa">
+                یادگیری با یک پرسش آغاز می‌شود. ایده‌ای را کاوش کنید، آن را به
+                دانسته‌های خود پیوند دهید و با بیان خودتان توضیح دهید.
+              </p>
+            ) : (
+              <>
+                <p lang="en">
+                  Learning starts with a question. Explore an idea, connect it to
+                  what you know, and explain it in your own words.
+                </p>
+                <p lang="zh">
+                  学习从一个问题开始。探索新的想法，将它与已有的知识联系起来，再用自己的语言解释。
+                </p>
+              </>
+            )}
           </div>
           <button
             type="button"
