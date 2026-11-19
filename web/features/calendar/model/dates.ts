@@ -137,9 +137,11 @@ export function formatDate(
   let formatter = formatters.get(cacheKey)
   if (!formatter) {
     try {
-      formatter = new Intl.DateTimeFormat(locale, options)
+      // Month navigation, recurrence and grid cells use native Gregorian dates.
+      // A Persian/Thai locale must not silently change just the heading's calendar.
+      formatter = new Intl.DateTimeFormat(locale, { calendar: 'gregory', ...options })
     } catch {
-      formatter = new Intl.DateTimeFormat(undefined, options)
+      formatter = new Intl.DateTimeFormat(undefined, { calendar: 'gregory', ...options })
     }
     formatters.set(cacheKey, formatter)
   }
@@ -185,4 +187,9 @@ export function formatWeekday(
 
 export function formatShortDate(date: Date, locale: string): string {
   return formatDate(date, locale, { month: 'short', day: 'numeric' })
+}
+
+/** Localized digits for the same day-of-month used by the Gregorian grid. */
+export function formatDayNumber(date: Date, locale: string): string {
+  return formatDate(date, locale, { day: 'numeric' })
 }

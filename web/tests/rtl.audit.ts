@@ -3,6 +3,14 @@ import fa from '../locales/fa/app.json'
 
 test.setTimeout(120_000)
 
+// Test a Persian browser preference without mutating the account's saved locale.
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('deeptutor-language', 'fa')
+    localStorage.setItem('deeptutor-response-language', 'fa')
+  })
+})
+
 for (const direction of ['rtl', 'ltr'] as const) {
   test(`mobile drawer leaves the viewport and reopens on the correct edge (${direction})`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 })
@@ -68,4 +76,20 @@ test('Persian desktop shell, directional icons and nested LTR content stay consi
   expect(scales[0]).toBe('-1 1')
   expect(scales[1]).toBe('none')
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true)
+})
+
+test('calendar headings and Persian day numbers describe the same Gregorian month', async ({ page }) => {
+  await page.goto('/calendar')
+  await expect(page.getByRole('button', { name: fa['New event'], exact: true })).toBeVisible()
+  const expected = await page.evaluate(() => {
+    const now = new Date()
+    return {
+      title: new Intl.DateTimeFormat('fa', { calendar: 'gregory', year: 'numeric', month: 'long' }).format(now),
+      key: `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+      day: new Intl.NumberFormat('fa').format(now.getDate()),
+    }
+  })
+  await expect(page.getByRole('heading', { name: expected.title, exact: true })).toBeVisible()
+  // The first day includes its month name; compare its localized digit prefix.
+  await expect(page.locator(`[data-cal-day="${expected.key}"] .dt-cal-cell-date`)).toContainText(expected.day)
 })

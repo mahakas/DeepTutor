@@ -16,6 +16,7 @@ import {
   dateKey,
   daysBetween,
   formatDate,
+  formatDayNumber,
   formatWeekday,
   fromDateKey,
   type DateKey,
@@ -369,7 +370,7 @@ function MonthWeek({
                       month: 'short',
                       day: 'numeric',
                     })
-                  : day.getDate()}
+                  : formatDayNumber(day, weekLocale)}
               </button>
               {footprint && <FootprintButton day={footprint} onOpen={onOpenFootprint} />}
             </div>

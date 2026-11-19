@@ -22,6 +22,7 @@ import {
   dateKey,
   daysBetween,
   formatHour,
+  formatDayNumber,
   formatTime,
   formatWeekday,
   fromDateKey,
@@ -524,7 +525,7 @@ export function TimeGrid({
               <div key={key} className="dt-cal-day-head" data-today={key === todayKey || undefined}>
                 <button type="button" className="dt-cal-day-label" onClick={() => onOpenDay(day)}>
                   <span className="dt-cal-weekday">{formatWeekday(day, locale)}</span>
-                  <span className="dt-cal-daynum">{day.getDate()}</span>
+                  <span className="dt-cal-daynum">{formatDayNumber(day, locale)}</span>
                 </button>
                 {footprint && <FootprintButton day={footprint} onOpen={onOpenFootprint} />}
               </div>
