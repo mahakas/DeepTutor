@@ -2104,8 +2104,16 @@ async def test_ui_endpoints_do_not_freeze_defaults_into_the_file(
 
     stored = json.loads(settings_file.read_text(encoding="utf-8"))
     assert stored == {"theme": "dark"}, f"only the changed field belongs on disk: {stored}"
-    # The read path still reports the full picture.
-    assert settings_router.load_ui_settings()["language"] == "en"
+    # The read path still reports the full picture. The value comes from
+    # DEFAULT_UI_SETTINGS rather than a hardcoded "en": the deployment default
+    # is a product decision, while what this test guards is that the read path
+    # merges defaults in and the write path does not.
+    from deeptutor.services.settings.interface_settings import DEFAULT_UI_SETTINGS
+
+    assert (
+        settings_router.load_ui_settings()["language"]
+        == DEFAULT_UI_SETTINGS["language"]
+    )
 
 
 @pytest.mark.asyncio

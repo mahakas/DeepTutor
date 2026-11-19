@@ -190,7 +190,12 @@ async def test_apply_rejects_a_value_outside_the_offered_choices(
 
     assert not outcome.ok
     assert "not one of the available options" in outcome.error
-    assert get_ui_settings()["language"] == "en"
+    # The rejected write must leave the value untouched. Compared against the
+    # default rather than a hardcoded "en" so the assertion keeps its meaning
+    # (nothing changed) when the product language changes.
+    from deeptutor.services.settings.interface_settings import DEFAULT_UI_SETTINGS
+
+    assert get_ui_settings()["language"] == DEFAULT_UI_SETTINGS["language"]
 
 
 @pytest.mark.asyncio
