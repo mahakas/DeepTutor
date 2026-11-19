@@ -119,7 +119,8 @@ def test_web_locale_keeps_interpolation_placeholders() -> None:
 
 def test_every_locale_can_name_hungarian() -> None:
     for path in (WEB / "locales").glob("*/app.json"):
-        assert _catalog(path.parent.name)["language.hungarian"] == "Magyar"
+        expected = "مجاری" if path.parent.name == "fa" else "Magyar"
+        assert _catalog(path.parent.name)["language.hungarian"] == expected
 
 
 def test_frontend_registers_hungarian() -> None:

@@ -44,10 +44,10 @@ test('Italian UI keeps the product glossary', () => {
   assert.equal(catalog['Retry'], 'Riprova')
 })
 
-test('every catalog names Italian by its endonym', () => {
+test('every catalog names Italian, localized for Persian', () => {
   for (const locale of fs.readdirSync(localesRoot).filter(name =>
     fs.existsSync(path.join(localesRoot, name, 'app.json'))
   )) {
-    assert.equal(readCatalog(locale)['language.italian'], 'Italiano', locale)
+    assert.equal(readCatalog(locale)['language.italian'], locale === 'fa' ? 'ایتالیایی' : 'Italiano', locale)
   }
 })

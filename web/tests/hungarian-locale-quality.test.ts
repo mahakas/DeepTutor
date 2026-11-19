@@ -71,10 +71,10 @@ test('Hungarian UI uses the en dash, never the em dash', () => {
   assert.deepEqual(offenders, [])
 })
 
-test('every catalog names Hungarian by its endonym', () => {
+test('every catalog names Hungarian, localized for Persian', () => {
   for (const locale of fs
     .readdirSync(localesRoot)
     .filter(name => fs.existsSync(path.join(localesRoot, name, 'app.json')))) {
-    assert.equal(readCatalog(locale)['language.hungarian'], 'Magyar', locale)
+    assert.equal(readCatalog(locale)['language.hungarian'], locale === 'fa' ? 'مجاری' : 'Magyar', locale)
   }
 })

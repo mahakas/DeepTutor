@@ -115,7 +115,8 @@ def test_web_locale_keeps_interpolation_placeholders() -> None:
 
 def test_every_locale_can_name_italian() -> None:
     for path in (WEB / "locales").glob("*/app.json"):
-        assert _catalog(path.parent.name)["language.italian"] == "Italiano"
+        expected = "ایتالیایی" if path.parent.name == "fa" else "Italiano"
+        assert _catalog(path.parent.name)["language.italian"] == expected
 
 
 def test_frontend_registers_italian() -> None:

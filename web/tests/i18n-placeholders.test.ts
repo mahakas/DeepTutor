@@ -9,7 +9,9 @@ function findLocalesRoot(): string {
   let dir = __dirname;
   for (let i = 0; i < 8; i++) {
     const candidate = path.join(dir, "locales");
-    if (fs.existsSync(path.join(candidate, "en"))) return candidate;
+    // TypeScript copies only statically imported JSON to dist. Require both
+    // namespaces so coverage is tested against the complete source catalogs.
+    if (fs.existsSync(path.join(candidate, "en", "common.json"))) return candidate;
     dir = path.dirname(dir);
   }
   throw new Error("could not locate locales/ directory from " + __dirname);
@@ -51,5 +53,30 @@ for (const file of listJsonFiles(enRoot)) {
       [],
       `Found namespace keys whose value equals the key (untranslated placeholders): ${placeholders.join(", ")}`,
     );
+  });
+}
+
+// Persian is the deployment default. Do not silently regress to English when
+// adding a source string or lose interpolation arguments in translated copy.
+for (const bundle of ["app.json", "common.json"]) {
+  const en = JSON.parse(fs.readFileSync(path.join(enRoot, bundle), "utf8")) as Record<string, string>;
+  const fa = JSON.parse(fs.readFileSync(path.join(localesRoot, "fa", bundle), "utf8")) as Record<string, string>;
+
+  test(`fa ${bundle} covers every source key and has no extra keys`, () => {
+    assert.deepEqual(Object.keys(fa).sort(), Object.keys(en).sort());
+  });
+
+  test(`fa ${bundle} is flat, nonempty and preserves interpolation occurrences`, () => {
+    const placeholders = (value: string) =>
+      [...value.matchAll(/\{\{\s*([A-Za-z0-9_]+)\s*\}\}/g)]
+        .map((match) => match[1]).sort();
+    for (const [key, source] of Object.entries(en)) {
+      const translated = fa[key];
+      assert.equal(typeof translated, "string", key);
+      assert.ok(translated.trim(), key);
+      // Compare against the displayed value: English also has rename-table
+      // entries where the literal lookup key is not the sentence being shown.
+      assert.deepEqual(placeholders(translated), placeholders(source), key);
+    }
   });
 }
