@@ -57,3 +57,14 @@ it("opens and closes the dynamically loaded notebook picker without changing the
     vi.unstubAllGlobals();
   }
 });
+
+it.each(['ltr', 'rtl'] as const)('resizes the editor with physical arrow keys in %s', async dir => {
+  render(<div dir={dir}><CoWriterWorkspace docId="document-1" /></div>);
+  expect(await screen.findByDisplayValue('Existing draft content')).toBeInTheDocument();
+  const separator = screen.getByRole('separator', { name: 'Resize editor and preview' });
+  await waitFor(() => expect(separator).toHaveAttribute('aria-valuenow', '50'));
+  fireEvent.keyDown(separator, { key: 'ArrowLeft' });
+  expect(separator).toHaveAttribute('aria-valuenow', dir === 'rtl' ? '55' : '45');
+  fireEvent.keyDown(separator, { key: 'Home' });
+  expect(separator).toHaveAttribute('aria-valuenow', '50');
+});

@@ -43,7 +43,7 @@ export default function SoulEditor({
           <span
             aria-hidden
             className={`pointer-events-none absolute bottom-0.5 start-0.5 top-0.5 w-[calc(50%-2px)] rounded-[6px] bg-[var(--background)] shadow-sm transition-transform duration-200 ease-out ${
-              mode === "preview" ? "translate-x-full" : ""
+              mode === "preview" ? "translate-x-full rtl:-translate-x-full" : ""
             }`}
           />
           {segments.map(({ key, label, icon: Icon }) => (

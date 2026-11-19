@@ -99,6 +99,8 @@ test('no class string still uses a physical inline-start/end utility', () => {
         continue
       }
       for (const hit of body.matchAll(DIRECTIONAL)) {
+        // Centring is physical geometry: left:50% minus half the element width.
+        if (hit[3] === 'left' && hit[4] === '-1/2' && body.includes('-translate-x-1/2')) continue
         offenders.push(`${file.rel}: ${hit[0]}`)
       }
     }
@@ -183,4 +185,23 @@ test('the locale declares direction and the document publishes it', () => {
   const provider = fs.readFileSync(path.join(ROOT, 'i18n/I18nProvider.tsx'), 'utf8')
   assert.match(provider, /root\.lang =/)
   assert.match(provider, /root\.dir =/)
+})
+
+test('centred overlays do not combine a logical origin with a physical translation', () => {
+  const offenders: string[] = []
+  for (const file of SOURCE) {
+    for (const match of file.text.matchAll(/["'`]([^"'`\n]{0,4000})["'`]/g)) {
+      if (/\bstart-1\/2\b/.test(match[1]) && /-translate-x-1\/2/.test(match[1])) {
+        offenders.push(file.rel)
+      }
+    }
+  }
+  assert.deepEqual(offenders, [])
+})
+
+test('closed navigation and preview drawers leave through their logical edge', () => {
+  const shell = fs.readFileSync(path.join(ROOT, 'components/layout/AppShell.tsx'), 'utf8')
+  assert.match(shell, /max-md:-translate-x-full rtl:max-md:translate-x-full/)
+  const preview = fs.readFileSync(path.join(ROOT, 'components/chat/preview/FilePreviewDrawer.tsx'), 'utf8')
+  assert.match(preview, /translate-x-full rtl:-translate-x-full/)
 })

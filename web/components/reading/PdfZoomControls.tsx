@@ -200,7 +200,7 @@ export function PdfZoomControls({
             role="menu"
             aria-label={t("Zoom level")}
             ref={menuRef}
-            className="absolute bottom-full start-1/2 mb-2 min-w-[132px] -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--background)] p-1.5 shadow-xl"
+            className="absolute bottom-full left-1/2 mb-2 min-w-[132px] -translate-x-1/2 rounded-xl border border-[var(--border)] bg-[var(--background)] p-1.5 shadow-xl"
           >
             {(
               [

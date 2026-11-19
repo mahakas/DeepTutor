@@ -362,8 +362,8 @@ function ToggleRow({ label, help, value, onChange }: ToggleRowProps) {
         >
           <span
             className={
-              "inline-block h-4 w-4 transform rounded-full bg-white shadow transition " +
-              (value ? "translate-x-4" : "translate-x-0.5")
+              "absolute h-4 w-4 transform rounded-full bg-white shadow transition " +
+              (value ? "start-4" : "start-0.5")
             }
           />
         </button>

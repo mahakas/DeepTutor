@@ -18,6 +18,8 @@ import {
   type ObjectiveStatus,
 } from "@/lib/learning-api";
 
+import { inlineDirection } from "@/lib/inline-geometry";
+
 import { ObjectiveDetail } from "./ObjectiveDetail";
 import { formatRelative, knowledgeTypeLabel } from "./format";
 
@@ -65,7 +67,7 @@ export function LearningBoard({
 
     const measure = () => {
       setScrollRange(Math.max(0, viewport.scrollWidth - viewport.clientWidth));
-      setScrollPosition(Math.max(0, viewport.scrollLeft));
+      setScrollPosition(Math.max(0, inlineDirection(viewport) * viewport.scrollLeft));
     };
     measure();
     if (typeof ResizeObserver === "undefined") return;
@@ -105,7 +107,7 @@ export function LearningBoard({
     <div className="flex min-h-0 min-w-0 flex-col gap-2 lg:flex-1">
       <div
         ref={scrollport}
-        onScroll={(event) => setScrollPosition(Math.max(0, event.currentTarget.scrollLeft))}
+        onScroll={(event) => setScrollPosition(Math.max(0, inlineDirection(event.currentTarget) * event.currentTarget.scrollLeft))}
         tabIndex={0}
         role="region"
         aria-label={t("Board")}
@@ -200,7 +202,7 @@ export function LearningBoard({
           className="w-full shrink-0 cursor-ew-resize accent-[var(--primary)]"
           onChange={(event) => {
             const viewport = scrollport.current;
-            if (viewport) viewport.scrollLeft = event.currentTarget.valueAsNumber;
+            if (viewport) viewport.scrollLeft = inlineDirection(viewport) * event.currentTarget.valueAsNumber;
           }}
         />
       )}

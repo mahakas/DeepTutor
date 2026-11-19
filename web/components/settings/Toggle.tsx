@@ -21,8 +21,8 @@ export function Toggle({
       }`}
     >
       <span
-        className={`absolute start-0.5 top-0.5 h-4 w-4 rounded-full bg-[var(--background)] shadow-sm transition-transform ${
-          checked ? "translate-x-4" : "translate-x-0"
+        className={`absolute top-0.5 h-4 w-4 rounded-full bg-[var(--background)] shadow-sm transition-transform ${
+          checked ? "start-[18px]" : "start-0.5"
         }`}
       />
     </button>

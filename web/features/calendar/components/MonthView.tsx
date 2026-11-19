@@ -180,7 +180,7 @@ export function MonthView({
         ?.querySelector<HTMLElement>(`[data-cal-day="${to}"]`)
         ?.getBoundingClientRect() ?? first
     if (!first || !last) return { top: 120, left: 200, right: 200, bottom: 160 }
-    return { top: first.top, left: first.left, right: last.right, bottom: last.bottom }
+    return { top: first.top, left: Math.min(first.left, last.left), right: Math.max(first.right, last.right), bottom: last.bottom }
   }
 
   const taskOver = (event: DragEvent<HTMLElement>, day: DateKey) => {
@@ -430,7 +430,7 @@ function laneStyle(first: number, last: number, lane: number): CSSProperties {
     position: 'absolute',
     top: HEAD + lane * LANE,
     height: LANE - 2,
-    left: `calc(${(first / 7) * 100}% + 3px)`,
+    insetInlineStart: `calc(${(first / 7) * 100}% + 3px)`,
     width: `calc(${((last - first + 1) / 7) * 100}% - 6px)`,
   }
 }

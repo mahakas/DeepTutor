@@ -11,6 +11,7 @@ import {
   type DragEvent,
   type PointerEvent as ReactPointerEvent,
 } from 'react'
+import { inlineDirection, inlineRatio, nearestColumn } from '@/lib/inline-geometry'
 import Tooltip from '@/shared/ui/Tooltip'
 import { useTranslation } from 'react-i18next'
 import {
@@ -124,12 +125,8 @@ export function TimeGrid({
   const columnAt = useCallback((clientX: number): { key: DateKey; rect: DOMRect } | null => {
     const columns = [...(columnsRef.current?.querySelectorAll<HTMLElement>('[data-cal-col]') ?? [])]
     if (!columns.length) return null
-    let best = columns[0]
-    for (const column of columns) {
-      const rect = column.getBoundingClientRect()
-      if (clientX >= rect.left) best = column
-    }
-    return { key: best.dataset.calCol as DateKey, rect: best.getBoundingClientRect() }
+    const best = nearestColumn(columns, clientX)
+    return best ? { key: best.dataset.calCol as DateKey, rect: best.getBoundingClientRect() } : null
   }, [])
   const minutesAt = (clientY: number, rect: DOMRect) =>
     clamp(((clientY - rect.top) / HOUR) * 60, 0, MINUTES_PER_DAY)
@@ -137,9 +134,9 @@ export function TimeGrid({
     (clientX: number): DateKey | null => {
       const row = spanRowRef.current
       if (!row) return null
-      const rect = row.getBoundingClientRect()
+      if (row.getBoundingClientRect().width <= 0) return null
       const index = clamp(
-        Math.floor(((clientX - rect.left) / rect.width) * keys.length),
+        Math.floor(inlineRatio(row, clientX) * keys.length),
         0,
         keys.length - 1
       )
@@ -463,8 +460,8 @@ export function TimeGrid({
     return {
       top: rect.top,
       bottom: rect.bottom,
-      left: rect.left + a * width,
-      right: rect.left + (b + 1) * width,
+      left: rect.left + (spanRowRef.current && inlineDirection(spanRowRef.current) === -1 ? keys.length - b - 1 : a) * width,
+      right: rect.left + (spanRowRef.current && inlineDirection(spanRowRef.current) === -1 ? keys.length - a : b + 1) * width,
     }
   }
 
@@ -625,7 +622,7 @@ export function TimeGrid({
                   const style = {
                     top,
                     height,
-                    left: `calc(${box.left * 100}% + 1px)`,
+                    insetInlineStart: `calc(${box.left * 100}% + 1px)`,
                     width: `calc(${box.width * 100}% - ${box.left + box.width >= 0.999 ? 6 : 3}px)`,
                   }
                   if (box.id === 'draft')
@@ -655,7 +652,7 @@ export function TimeGrid({
                 {taskDrop && !('allDay' in taskDrop) && taskDrop.day === key && (
                   <div
                     className="dt-cal-ghost"
-                    style={{ top: (taskDrop.minutes / 60) * HOUR, height: HOUR, left: 1, right: 6 }}
+                    style={{ top: (taskDrop.minutes / 60) * HOUR, height: HOUR, insetInlineStart: 1, insetInlineEnd: 6 }}
                   />
                 )}
                 {key === todayKey && (
@@ -679,7 +676,7 @@ function spanStyle(first: number, last: number, lane: number, count: number): CS
     position: 'absolute',
     top: 4 + lane * LANE,
     height: LANE - 3,
-    left: `calc(${(first / count) * 100}% + 2px)`,
+    insetInlineStart: `calc(${(first / count) * 100}% + 2px)`,
     width: `calc(${((last - first + 1) / count) * 100}% - 5px)`,
   }
 }

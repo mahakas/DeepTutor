@@ -831,7 +831,7 @@ function PartnerDetail() {
       />
 
       {toast && (
-        <div className="pointer-events-none fixed bottom-6 start-1/2 z-50 -translate-x-1/2 rounded-lg bg-[var(--foreground)] px-3.5 py-2 text-[12.5px] text-[var(--background)] shadow-lg">
+        <div className="pointer-events-none fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-lg bg-[var(--foreground)] px-3.5 py-2 text-[12.5px] text-[var(--background)] shadow-lg">
           {toast}
         </div>
       )}
