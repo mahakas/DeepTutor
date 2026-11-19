@@ -237,27 +237,24 @@ deeptutor start --detach --no-browser
 Read the actual launcher URLs, verify backend `/health/ready`, and confirm the
 frontend responds. Defaults are backend `http://127.0.0.1:8001` and frontend
 `http://127.0.0.1:3782`; use the reported ports if different. Inspect launcher
-logs on failure. Choose free ports through `config apply` instead of stopping
-unrelated processes. For CLI-only, skip Web startup and verify turn execution:
+logs on failure. Choose free ports in **Settings → Runtime** instead of stopping
+unrelated processes.
 
-```bash
-deeptutor run chat "Reply with a short greeting." --format json
-```
+Verify a turn in the browser, not from a shell: open Chat, send a short message,
+and confirm a reply completes. Check for a complete response, not merely that the
+window loaded — a configured provider that rejects the key still renders the chat
+shell.
 
-This also uses the configured model. Check for a successful response and turn
-completion, not merely a zero exit code or the first streamed event.
-
-Keep one turn-owning process per runtime home. While a detached
-`deeptutor start` instance is running, do not execute CLI turns
-(`deeptutor run chat`, the REPL) against the same `DEEPTUTOR_HOME`: in the
-default memory-coordinator mode the server's recovery scan cannot see the
-CLI process's lease and fails the live turn as `worker_lost`, surfacing in
-the CLI as `Turn event conflict` (#2168). Stop the app first with
-`deeptutor stop`, or run this verification turn before starting the Web app.
+> **The terminal turn path is gone.** `deeptutor run`, `deeptutor chat` and
+> `deeptutor config apply` were removed when this project became web-only. The
+> guidance that used to live here — that only one turn-owning process may run
+> per runtime home, because the server's recovery scan cannot see another
+> process's lease — is still true of the server itself: do not point two
+> `deeptutor start` instances at the same `DEEPTUTOR_HOME`. Stop the first with
+> `deeptutor stop` before starting a second.
 
 Finish with the checkout/environment, runtime home, provider/model without
-credentials, passed checks, Web URL or CLI invocation, and any remaining user
-action. Include `deeptutor stop` with the same home for a detached app. If
+credentials, passed checks, Web URL, and any remaining user action. Include `deeptutor stop` with the same home for a detached app. If
 credentials or network access prevent verification, state the exact unfinished
 step instead of declaring setup complete.
 
@@ -314,7 +311,7 @@ based on evidence; there is no need to run every command for every problem.
 
 - [deeptutor_cli/setup_config.py](../deeptutor_cli/setup_config.py)
 - [deeptutor_cli/doctor.py](../deeptutor_cli/doctor.py)
-- [tests/cli/test_agent_setup.py](../tests/cli/test_agent_setup.py)
+- [tests/cli/test_init_setup.py](../tests/cli/test_init_setup.py)
 
 
 ### Legacy text encodings
