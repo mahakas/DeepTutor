@@ -1073,7 +1073,8 @@ button.dt-cal-rail-link {
 @media (max-width: 700px) {
   .dt-cal-rail {
     position: absolute;
-    inset: 100px auto 0 0;
+    inset-block: 100px 0;
+    inset-inline: 0 auto;
     background: var(--background);
     width: 215px;
     z-index: 20;
