@@ -6,7 +6,11 @@ from typing import Any
 
 import pytest
 
-from deeptutor.services.config.model_catalog import SERVICE_NAMES, ModelCatalogService
+from deeptutor.services.config.model_catalog import (
+    SERVICE_NAMES,
+    CatalogUnreadable,
+    ModelCatalogService,
+)
 
 
 def test_load_creates_empty_catalog_without_dotenv_hydration(tmp_path: Path):
@@ -103,14 +107,31 @@ def test_load_does_not_sync_existing_active_profiles_from_dotenv(tmp_path: Path)
     assert emb_model["dimension"] == "3072"
 
 
-def test_load_recovers_invalid_catalog_with_defaults(tmp_path: Path):
+def test_load_refuses_to_overwrite_invalid_catalog(tmp_path: Path):
+    """A corrupt catalog is reported, not silently replaced.
+
+    This test used to assert the opposite: that an unparseable file was
+    rewritten with a default catalog. That "recovery" is what destroyed real
+    credentials -- the file is exactly where API keys live, so replacing it
+    discards them, and nothing warned the operator. The invalid bytes must
+    survive so they can be repaired or recovered.
+    """
     catalog_path = tmp_path / "model_catalog.json"
     catalog_path.write_text("{not-json", encoding="utf-8")
+    corrupt = catalog_path.read_bytes()
+
+    with pytest.raises(CatalogUnreadable):
+        ModelCatalogService(path=catalog_path).load()
+
+    assert catalog_path.read_bytes() == corrupt
+
+
+def test_a_missing_catalog_is_still_seeded_with_every_service(tmp_path: Path):
+    """The fresh-install path, which the test above used to cover by accident."""
+    catalog_path = tmp_path / "model_catalog.json"
 
     catalog = ModelCatalogService(path=catalog_path).load()
 
-    # Derived rather than re-listed: a new service should not need this test
-    # edited to keep passing, only the one that describes it.
     expected_services = set(SERVICE_NAMES)
     assert set(catalog["services"]) == expected_services
     saved = json.loads(catalog_path.read_text(encoding="utf-8"))

@@ -92,7 +92,7 @@ def maybe_run(coro):  # noqa: ANN001
     try:
         return asyncio.run(run_and_close())
     except KeyboardInterrupt:
-        console.print("\n[dim]Interrupted.[/]")
+        console.print("\n[dim]متوقف شد.[/]")
         return None
 
 

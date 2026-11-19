@@ -973,3 +973,64 @@ sandbox توسعه مرورگر ندارد و **نمی‌تواند داشته �
 **Consequences:** مجموع آزمون از ۱۴۳۱۹ به ۱۴۲۴۱ رسید — کم‌شدن، ولی نه به قیمت پوشش رفتار. اگر همه را پاک می‌کردم، سبز می‌شدم و سه تضمین را بی‌صدا از دست می‌دادم.
 
 **Rollback:** ندارد.
+
+### D-099 — زبان رابط از پیش‌فرض فارسی می‌شود، ولی فهرست زبان‌ها بسته نمی‌شود
+
+**Context:** سه زبان در فرانت عرضه می‌شد که بک‌اند قبولشان نمی‌کرد. `fa` و `ko` هر دو بستهٔ زبان کامل داشتند، در فهرست انتخابگر بودند و `_normalize_language` در همان فایل `fa` را می‌شناخت — ولی `UiLanguage` (که اعتبارسنجی درخواست را تعیین می‌کند) نه. یعنی `PUT /api/settings/ui {"language":"fa"}` با ۴۲۲ رد می‌شد در حالی که منو فارسی را نشان می‌داد. تستی هم نبود که این دو فهرست را به هم ببندد، پس اختلاف تا حالا کسی را اذیت نکرده بود.
+
+**Decision:** `UiLanguage` با `APP_LANGUAGES` هم‌تراز شد (`fa` و `ko` اضافه شدند، `ko` به `_normalize_language` هم رفت چون آنجا هم نبود). یک تست هر دو فهرست را استخراج می‌کند و اگر در **هر دو جهت** اختلاف پیدا کند شکست می‌خورد. `DEFAULT_UI_SETTINGS["language"]` شد `fa`.
+
+این «قفل کردن محصول روی فارسی» نیست: پیش‌فرض است، و انتخاب ذخیره‌شدهٔ کاربر در `interface.json` بر آن مقدم است. `response_language` هم عمداً دست‌نخورده ماند (`en`) تا زبان *پاسخ مدل* با زبان *رابط* قاطی نشود؛ وقتی کاربر فارسی را انتخاب کند `resolve_languages` خودش آن را به ارث می‌برد.
+
+**Consequences:** سه آزمون `"en"` را هاردکد کرده بودند ولی در واقع «مسیر خواندن پیش‌فرض‌ها را ادغام می‌کند» یا «نوشتن ردشده چیزی را عوض نمی‌کند» را می‌سنجیدند. حالا با `DEFAULT_UI_SETTINGS["language"]` مقایسه می‌کنند تا تغییر زبان محصول دیگر نیاز به ویرایش تست نداشته باشد. مجموع تست: ۱۴۲۴۱ → ۱۴۲۷۷.
+
+**Rollback:** `git revert` کامیت `a39161d4`؛ پیش‌فرض به `en` برمی‌گردد و دو زبان دوباره از دسترس خارج می‌شوند.
+
+### D-100 — کاتالوگ خراب بازنویسی نمی‌شود؛ کنار گذاشته می‌شود
+
+**Context:** این را وقتی پیدا کردم که کاتالوگ مدل بی‌دلیل خالی شد و کلید API از دیسک رفت. `ModelCatalogService.load` فایلِ «ناموجود» و فایلِ «غیرقابل‌خواندن» را یکسان می‌دید — هر دو به‌شکل `{}` می‌رسیدند — و طبق طراحیِ نصب تازه، `_default_catalog()` را روی فایل می‌نوشت. یعنی **یک نوشتن نیمه‌تمام** (کرش، دیسک پر، ذخیرهٔ نیمه‌کارهٔ ویرایشگر) کافی بود تا همهٔ کلیدهای ذخیره‌شده بی‌صدا نابود شوند.
+
+با یک فایل ۸۹ بایتی حاوی کلید بازتولید شد: خرابش کردم، یک‌بار `load()` زدم، فایل ۸۸۹ بایتیِ پیش‌فرض برگشت و کلید رفت. هیچ پشتیبانی هم نبود.
+
+بدتر: خودِ مجموعه‌آزمون این رفتار را **تأیید** می‌کرد. `test_load_recovers_invalid_catalog_with_defaults` دقیقاً بررسی می‌کرد که فایل خراب با پیش‌فرض بازنویسی شود.
+
+**Decision:** فایلِ حاضرِ غیرقابل‌خواندن `CatalogUnreadable` می‌اندازد و **بایت‌به‌بایت** دست‌نخورده می‌ماند. فایل غایب یا صفر‌بایتی همان مسیر قبلی را می‌رود (نوشتنی که هرگز شروع نشده داده‌ای برای نجات ندارد). `init` — که همان دستوری است که کاربر برای «برگرداندن به حالت کار» می‌زند — از `preserve_unreadable_and_reset` استفاده می‌کند: فایل را به `model_catalog.json.corrupt-<timestamp>` منتقل می‌کند و تازه می‌سازد. بایت‌ها می‌مانند، چون تنها جایی هستند که کلید هنوز وجود دارد.
+
+**Consequences:** تستِ قدیمی طوری بازنویسی شد که **بقای فایل** را تضمین کند، و مسیر نصب تازه تست جداگانه گرفت (که پیش‌تر تصادفاً پوشش می‌داد). شش تست جدید در `test_catalog_corruption_preserves_credentials.py`.
+
+**درس:** تستی که رفتارِ غلط را قفل می‌کند بدتر از نبودِ تست است — چون به شما می‌گوید آن رفتار محافظت‌شده است. قبل از اینکه چیزی را «درست» فرض کنم، باید می‌پرسیدم این تست چه چیزی را *باید* تضمین کند.
+
+**Rollback:** `git revert` کامیت `06b83d7c`. توصیه نمی‌شود؛ باگ نابودی کلید برمی‌گردد.
+
+### D-101 — Complete Persian UI catalogs are a required gate
+
+**Context:** The Persian locale previously passed a 12% coverage floor. Source
+keys are not always displayed English text: the rename table changes 883 values,
+so translating or validating placeholders against raw keys can silently produce
+incorrect copy. The user requested Persian throughout the frontend and retained
+launcher CLI, without another approval checkpoint.
+
+**Decision:** Populate all 6,700 app entries and 45 common entries. Validate
+batches against displayed source values, with explicit by-value support in
+`scripts/i18n/apply.py`. Require Persian in the strict frontend audit instead of
+the partial-locale floor. Add exact catalog-key and interpolation parity tests.
+Keep technical identifiers, provider/model names, URLs, option names and machine
+JSON contracts unchanged. Existing language selection remains available; Persian
+is the default, not a ban on other user-selected languages.
+
+The retained launcher, initialization wizard, doctor presentation, and all 106
+runtime banner labels have Persian copy. Localize Typer usage and the help option
+through public command/group subclasses, rather than patching the parser.
+Third-party exception details are not rewritten. Diagnostic JSON stays stable.
+
+**Consequences:** Newly introduced untranslated catalog keys or broken Persian
+placeholders fail checks. Persian accounts see Persian reading samples, token
+units and indexing durations. Catalog completeness does not certify the quality
+of every sentence; native-speaker editorial review remains desirable. This does
+not translate generated model responses or arbitrary external service content.
+No schema migration, production configuration change, or credential provisioning
+is involved.
+
+**Rollback:** Revert the individual i18n commits in reverse dependency order;
+restore source and target catalogs together so key-parity tests remain valid.
+No data migration or destructive runtime action is required.

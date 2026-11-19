@@ -135,7 +135,8 @@ def test_web_locale_keeps_interpolation_placeholders() -> None:
 
 def test_every_locale_can_name_turkish() -> None:
     for path in (WEB / "locales").glob("*/app.json"):
-        assert _catalog(path.parent.name)["language.turkish"] == "Türkçe"
+        expected = "ترکی" if path.parent.name == "fa" else "Türkçe"
+        assert _catalog(path.parent.name)["language.turkish"] == expected
 
 
 def test_frontend_registers_turkish() -> None:

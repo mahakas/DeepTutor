@@ -135,10 +135,8 @@ def test_web_locale_registers_persian() -> None:
 
 def test_web_persian_catalog_only_uses_keys_that_exist_in_english() -> None:
     en, fa = _catalog("en"), _catalog("fa")
-    # A partial bundle is legal: i18next falls back per key. What is NOT legal
-    # is inventing a key English does not have — that string would render
-    # nowhere and silently drift.
-    assert set(fa) <= set(en)
+    # Persian is the default deployment locale and must cover every source key.
+    assert set(fa) == set(en)
 
 
 def test_web_persian_catalog_keeps_interpolation_placeholders() -> None:

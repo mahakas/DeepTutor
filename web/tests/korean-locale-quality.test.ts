@@ -42,9 +42,9 @@ test('Korean common catalog is complete and agrees with the app catalog', () => 
   for (const [key, value] of Object.entries(common)) assert.equal(value, app[key], key)
 })
 
-test('every locale offers Korean by its endonym', () => {
+test('every locale offers Korean, localized for Persian', () => {
   for (const locale of fs.readdirSync(localesRoot)) {
     if (!fs.existsSync(path.join(localesRoot, locale, 'app.json'))) continue
-    assert.equal(readCatalog(locale)['language.korean'], '한국어 (일부 번역)', locale)
+    assert.equal(readCatalog(locale)['language.korean'], locale === 'fa' ? 'کره‌ای (ترجمهٔ جزئی)' : '한국어 (일부 번역)', locale)
   }
 })

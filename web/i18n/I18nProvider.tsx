@@ -56,10 +56,9 @@ export function I18nProvider({
       const root = document.documentElement;
       root.lang = regionalLocale(nextLang);
       // Direction is set from the locale's declared property, never guessed
-      // from the script (D-02). Until step 1.3 lands the logical-property
-      // conversion, `rtl` is intentionally inert: the shell is still laid out
-      // with physical properties. The attribute is correct from day one so
-      // the RTL work has a single source of truth to build on.
+      // from the script (D-02). The logical-property conversion this once
+      // waited on has landed -- `web/tests/rtl-logical-properties.test.ts`
+      // enforces it -- so `rtl` now genuinely mirrors the shell.
       root.dir = textDirection(nextLang);
       setReadyLanguage(nextLang);
     });

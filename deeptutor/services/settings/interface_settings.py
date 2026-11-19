@@ -19,12 +19,22 @@ from deeptutor.response_languages import SUPPORTED_RESPONSE_LANGUAGES
 from deeptutor.services.path_service import get_path_service
 from deeptutor.tools.builtin import USER_TOGGLEABLE_TOOL_NAMES
 
-UiLanguage = Literal["en", "zh", "fr", "de", "uk", "pl", "pt", "vi", "ja", "tr", "it", "hu"]
+# Must stay in step with APP_LANGUAGES in web/i18n/languages.ts. `fa` was in the
+# frontend list and missing here, so selecting Persian was rejected by request
+# validation -- the option existed in the menu and the server refused it. Any
+# language added there has to be added here in the same change.
+UiLanguage = Literal[
+    "en", "zh", "fr", "de", "uk", "pl", "pt", "vi", "ja", "tr", "it", "hu", "fa", "ko"
+]
 
 DEFAULT_UI_SETTINGS: dict[str, Any] = {
     # "system" follows the OS. "snow" is the pure-white Default palette.
     "theme": "system",
-    "language": "en",
+    # Persian is the product language for this deployment. Changing it here
+    # changes the interface for every fresh install; the picker still offers all
+    # 14 locales, and a user who selects another one keeps it (it is persisted
+    # in settings/interface.json and wins over this default).
+    "language": "fa",
     "response_language": "en",
     "content_font_scale": 100,
     "content_line_spacing": "normal",
@@ -156,6 +166,8 @@ def _normalize_language(language: Any, default: str = "en") -> str:
             return "hu"
         if s in {"persian", "farsi", "فارسی"} or base == "fa":
             return "fa"
+        if s in {"korean", "한국어"} or base == "ko":
+            return "ko"
 
     # Fall back to default
     if isinstance(default, str):

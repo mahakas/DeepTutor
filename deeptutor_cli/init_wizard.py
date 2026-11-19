@@ -374,8 +374,8 @@ def select_from_options(
     options: list[tuple[str, str, str]],  # [(key, label, hint), ...]
     default_key: str | None = None,
     extra_keys: dict[str, str] | None = None,
-    prompt_label: str = "Choice",
-    invalid_label: str = "Invalid choice. Try again.",
+    prompt_label: str = "انتخاب",
+    invalid_label: str = "انتخاب نامعتبر است. دوباره تلاش کنید.",
 ) -> str:
     """Render a numbered/keyed menu, return the selected key.
 
@@ -464,7 +464,7 @@ def select_llm_provider(
 
     options: list[tuple[str, str, str]] = []
     for spec in featured:
-        hint = spec.default_api_base or ("local" if spec.is_local else "")
+        hint = spec.default_api_base or ("محلی" if spec.is_local else "")
         options.append((spec.name, spec.label, hint))
 
     # ``[s]`` is reserved for the "Skip" shortcut in optional steps
@@ -500,7 +500,7 @@ def _select_provider_full_list(
 ) -> ProviderSpec | None:
     rest = _all_providers_except(exclude)
     options: list[tuple[str, str, str]] = [
-        (spec.name, spec.label, spec.default_api_base or ("local" if spec.is_local else ""))
+        (spec.name, spec.label, spec.default_api_base or ("محلی" if spec.is_local else ""))
         for spec in rest
     ]
     extra = {"b": strings["init.back"], "c": strings["init.custom_provider"]}
@@ -546,7 +546,7 @@ def select_embedding_provider(
         spec = EMBEDDING_PROVIDERS.get(name)
         if not spec:
             continue
-        hint = spec.default_api_base or ("local" if spec.is_local else "")
+        hint = spec.default_api_base or ("محلی" if spec.is_local else "")
         options.append((name, spec.label, hint))
 
     extra = {
@@ -693,7 +693,7 @@ def fetch_models(
     elif isinstance(payload, list):
         raw_items = payload
     else:
-        warn(console, strings["init.fetch_models_fail"].format(error="unexpected response shape"))
+        warn(console, strings["init.fetch_models_fail"].format(error="ساختار پاسخ غیرمنتظره است"))
         return []
 
     names: list[str] = []
@@ -1023,9 +1023,9 @@ def render_review_panel(
             probed, ok_flag = probe
             if probed:
                 if ok_flag:
-                    body.append("  ✓ probed", style="green")
+                    body.append("  ✓ آزمایش‌شده", style="green")
                 else:
-                    body.append("  ! probe failed", style="yellow")
+                    body.append("  ! آزمایش ناموفق", style="yellow")
         body.append("\n")
 
     if llm:

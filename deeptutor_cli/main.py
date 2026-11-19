@@ -36,22 +36,34 @@ from pathlib import Path
 import sys
 
 import typer
+from typer import rich_utils as _rich_utils
 
 from deeptutor.logging import configure_logging
 from deeptutor.modules.catalog import manifests, module_enabled
 from deeptutor.runtime.mode import RunMode, set_mode
 
 from .common import console
+
+# Typer renders its panels with English titles taken from ``typer.rich_utils``.
+# Those are module-level constants, so overriding them before any command object
+# is built localises every subcommand's help panel at once. Command-specific
+# usage and help-option descriptions use the public extension points in persian.
+_rich_utils.OPTIONS_PANEL_TITLE = "گزینه‌ها"
+_rich_utils.COMMANDS_PANEL_TITLE = "دستورها"
+_rich_utils.ARGUMENTS_PANEL_TITLE = "آرگومان‌ها"
+_rich_utils.ERRORS_PANEL_TITLE = "خطا"
+_rich_utils.RICH_HELP = "برای راهنما از [blue]'{command_path} {help_option}'[/] استفاده کنید."
 from .doctor import register as register_doctor
 from .init_cmd import register as register_init
 from .module import register as register_module
+from .persian import PersianTyper
 
 set_mode(RunMode.CLI)
 configure_logging(console_stream=sys.stderr)
 
-app = typer.Typer(
+app = PersianTyper(
     name="deeptutor",
-    help="DeepTutor – launch and operate the web app.",
+    help="درسیار – راه‌اندازی و کار با وب‌اپ.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -80,31 +92,31 @@ for owner, module in manifests().items():
 
 register_doctor(app)
 register_init(app)
-module_app = typer.Typer(help="Install, remove and inspect optional modules.")
+module_app = PersianTyper(help="نصب، حذف و بررسی ماژول‌های اختیاری.")
 app.add_typer(module_app, name="module")
 register_module(module_app)
 
 
 @app.command()
 def start(
-    home: Path | None = typer.Option(None, "--home", help="Runtime workspace root."),
+    home: Path | None = typer.Option(None, "--home", help="ریشهٔ فضای کاری زمان اجرا."),
     dev: bool = typer.Option(
         False,
         "--dev",
-        help="Use the Next.js development server for frontend work.",
+        help="استفاده از سرور توسعهٔ Next.js برای کار روی فرانت‌اند.",
     ),
     detach: bool = typer.Option(
         False,
         "--detach",
-        help="Run outside the current console; stop later with `deeptutor stop`.",
+        help="اجرا بیرون از کنسول فعلی؛ بعداً با `deeptutor stop` متوقفش کنید.",
     ),
     open_browser: bool = typer.Option(
         True,
         "--open-browser/--no-browser",
-        help="Open the frontend automatically after startup.",
+        help="باز کردن خودکار فرانت‌اند پس از راه‌اندازی.",
     ),
 ) -> None:
-    """Launch backend + frontend together. Source installs default to production."""
+    """راه‌اندازی هم‌زمان بک‌اند و فرانت‌اند. نصب‌های منبعی به‌طور پیش‌فرض در حالت تولید اجرا می‌شوند."""
     from deeptutor.modules.catalog import require_module
 
     require_module("server")
@@ -116,9 +128,9 @@ def start(
 
 @app.command()
 def stop(
-    home: Path | None = typer.Option(None, "--home", help="Runtime workspace root."),
+    home: Path | None = typer.Option(None, "--home", help="ریشهٔ فضای کاری زمان اجرا."),
 ) -> None:
-    """Stop a DeepTutor launcher started with ``--detach``."""
+    """متوقف کردن راه‌انداز درسیار که با ``--detach`` اجرا شده است."""
     from deeptutor.runtime.launcher import stop as stop_web
 
     if not stop_web(home=home):
@@ -127,11 +139,11 @@ def stop(
 
 @app.command()
 def serve(
-    host: str = typer.Option("0.0.0.0", help="Bind address."),
-    port: int | None = typer.Option(None, help="Port number."),
-    reload: bool = typer.Option(False, help="Enable auto-reload for development."),
+    host: str = typer.Option("0.0.0.0", help="نشانی اتصال."),
+    port: int | None = typer.Option(None, help="شمارهٔ درگاه."),
+    reload: bool = typer.Option(False, help="فعال‌سازی بارگذاری خودکار برای توسعه."),
 ) -> None:
-    """Start only the DeepTutor API server (no frontend)."""
+    """فقط سرور API درسیار را اجرا می‌کند (بدون فرانت‌اند)."""
     import asyncio
 
     from deeptutor.modules.catalog import require_module
@@ -153,8 +165,8 @@ def serve(
         import uvicorn
     except ImportError:
         console.print(
-            "[bold red]Error:[/] API server dependencies not installed.\n"
-            "Run: deeptutor module install server"
+            "[bold red]خطا:[/] وابستگی‌های سرور API نصب نشده‌اند.\n"
+            "اجرا کنید: deeptutor module install server"
         )
         raise typer.Exit(code=1)
 
@@ -166,7 +178,7 @@ def serve(
 
     backend_workers = max(1, int(load_system_settings().get("backend_workers") or 1))
     if reload and backend_workers > 1:
-        console.print("[bold red]Error:[/] --reload cannot be used when backend_workers > 1.")
+        console.print("[bold red]خطا:[/] وقتی backend_workers > 1 است، --reload مجاز نیست.")
         raise typer.Exit(code=2)
 
     # ws_max_size tracks the configured chat-attachment total so base64

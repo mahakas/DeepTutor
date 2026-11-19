@@ -208,6 +208,14 @@ def _ensure_essential_settings(path_service) -> None:
 
         ensure_runtime_settings_files()
     except Exception as e:
+        from deeptutor.services.config.model_catalog import CatalogUnreadable
+
+        # A corrupt catalog is not "some setting failed to initialise and we
+        # carried on": the file holds API keys, and continuing would let the
+        # command report success over data the operator still needs to rescue.
+        # Everything else stays a warning, which is what this block is for.
+        if isinstance(e, CatalogUnreadable):
+            raise
         _get_setup_logger().warning(f"Failed to initialise runtime JSON settings: {e}")
 
     _seed_default_personas()

@@ -26,6 +26,10 @@ export function initI18n(language?: unknown) {
   i18n.use(initReactI18next).init({
     resources,
     lng: normalizeLanguage(language),
+    // Persian is the deployment default; English remains the source bundle.
+    // A missing translation falls back per key, not for the whole interface.
+    // Translate enApp[key], not the key: some English values rename UI terms.
+    // Persian key/placeholder parity is enforced by i18n-placeholders.test.ts.
     fallbackLng: "en",
     // Use a single default namespace to keep lookups simple.
     // We intentionally keep keySeparator disabled so keys like "Generating..." remain valid.

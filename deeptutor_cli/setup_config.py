@@ -56,9 +56,9 @@ class SetupConfig(_SetupSection):
     @model_validator(mode="after")
     def require_changes(self) -> SetupConfig:
         if not any((self.llm, self.embedding, self.search, self.system)):
-            raise ValueError("Provide at least one of llm, embedding, search, or system.")
+            raise ValueError("حداقل یکی از بخش‌های llm، embedding، search یا system را مشخص کنید.")
         if self.system is not None and not self.system.model_dump(exclude_none=True):
-            raise ValueError("system must specify at least one port.")
+            raise ValueError("در بخش system باید حداقل یک درگاه مشخص شود.")
         return self
 
 
@@ -76,14 +76,14 @@ def select_runtime_home(home: str | Path | None) -> Path:
 def _api_key(env_name: str | None, *, required: bool, section: str) -> str:
     if env_name is None:
         if required:
-            raise ValueError(f"{section}.api_key_env is required for this provider.")
+            raise ValueError(f"برای این ارائه‌دهنده، {section}.api_key_env الزامی است.")
         return ""
     if not re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", env_name):
-        raise ValueError(f"{section}.api_key_env must be an environment variable name.")
+        raise ValueError(f"مقدار {section}.api_key_env باید نام یک متغیر محیطی باشد.")
     value = os.environ.get(env_name, "")
     if not value.strip():
         raise ValueError(
-            f"The environment variable named by {section}.api_key_env is empty or unset."
+            f"متغیر محیطی تعیین‌شده در {section}.api_key_env خالی است یا تنظیم نشده است."
         )
     return value
 
@@ -91,7 +91,7 @@ def _api_key(env_name: str | None, *, required: bool, section: str) -> str:
 def _validate_endpoint(endpoint: str, section: str) -> None:
     parsed = urlparse(endpoint)
     if parsed.scheme not in {"http", "https"} or not parsed.hostname:
-        raise ValueError(f"{section}.base_url must be an HTTP(S) URL.")
+        raise ValueError(f"مقدار {section}.base_url باید یک نشانی HTTP(S) باشد.")
     if (
         parsed.username is not None
         or parsed.password is not None
@@ -100,7 +100,7 @@ def _validate_endpoint(endpoint: str, section: str) -> None:
             for key, _ in parse_qsl(parsed.query)
         )
     ):
-        raise ValueError(f"{section}.base_url must not contain credentials; use api_key_env.")
+        raise ValueError(f"نشانی {section}.base_url نباید اطلاعات ورود داشته باشد؛ از api_key_env استفاده کنید.")
 
 
 def prepare_profiles(config: SetupConfig) -> dict[str, dict]:
@@ -120,15 +120,15 @@ def prepare_profiles(config: SetupConfig) -> dict[str, dict]:
         llm_spec = find_by_name(provider) if section == "llm" else None
         spec = llm_spec if section == "llm" else EMBEDDING_PROVIDERS.get(provider)
         if spec is None:
-            raise ValueError(f"Unsupported {section} provider. See 'deeptutor config providers'.")
+            raise ValueError(f"ارائه‌دهندهٔ بخش {section} پشتیبانی نمی‌شود؛ تنظیمات ارائه‌دهندگان را در وب‌اپ بررسی کنید.")
         if section == "llm" and choice.dimension is not None:
-            raise ValueError("dimension is only supported in the embedding section.")
+            raise ValueError("گزینهٔ dimension فقط در بخش embedding پشتیبانی می‌شود.")
         if section == "embedding" and choice.api_format is not None:
-            raise ValueError("api_format is only supported in the llm section.")
+            raise ValueError("گزینهٔ api_format فقط در بخش llm پشتیبانی می‌شود.")
         if llm_spec is not None and choice.api_format is not None:
             allowed = llm_spec.api_formats or (llm_spec.default_api_format,)
             if choice.api_format not in allowed:
-                raise ValueError("llm.api_format is not supported by this provider.")
+                raise ValueError("این ارائه‌دهنده از llm.api_format پشتیبانی نمی‌کند.")
         default_endpoint = spec.default_api_base
         if llm_spec is not None and choice.api_format is not None:
             default_endpoint = dict(llm_spec.api_base_by_format).get(
@@ -140,7 +140,7 @@ def prepare_profiles(config: SetupConfig) -> dict[str, dict]:
                 provider, endpoint, model=choice.model
             )
         if not endpoint and not (llm_spec is not None and llm_spec.is_oauth):
-            raise ValueError(f"{section}.base_url is required for this provider.")
+            raise ValueError(f"برای این ارائه‌دهنده، {section}.base_url الزامی است.")
         if endpoint:
             _validate_endpoint(endpoint, section)
         requires_key = (
@@ -169,10 +169,10 @@ def prepare_profiles(config: SetupConfig) -> dict[str, dict]:
         provider = choice.provider.lower()
         search_spec = SEARCH_PROVIDERS.get(provider)
         if search_spec is None:
-            raise ValueError("Unsupported search provider. See 'deeptutor config providers'.")
+            raise ValueError("ارائه‌دهندهٔ جست‌وجو پشتیبانی نمی‌شود؛ تنظیمات ارائه‌دهندگان را در وب‌اپ بررسی کنید.")
         endpoint = choice.base_url or ""
         if search_spec.requires_base_url and not endpoint:
-            raise ValueError("search.base_url is required for this provider.")
+            raise ValueError("برای این ارائه‌دهنده، search.base_url الزامی است.")
         if endpoint:
             _validate_endpoint(endpoint, "search")
         profiles["search"] = {
@@ -193,9 +193,9 @@ def _read_settings(path: Path) -> dict:
     try:
         payload = json.loads(path.read_text(encoding="utf-8"))
     except (ValueError, UnicodeError):
-        raise ValueError(f"Existing settings file is not valid JSON: {path}") from None
+        raise ValueError(f"فایل تنظیمات موجود، JSON معتبر نیست: {path}") from None
     if not isinstance(payload, dict):
-        raise ValueError(f"Existing settings file must contain a JSON object: {path}")
+        raise ValueError(f"فایل تنظیمات موجود باید شامل یک شیء JSON باشد: {path}")
     return payload
 
 
@@ -212,7 +212,7 @@ def prepare_system(config: SetupConfig) -> dict | None:
     system = {**DEFAULT_SYSTEM_SETTINGS, **_read_settings(runtime.path_for("system"))}
     system.update(config.system.model_dump(exclude_none=True))
     if system["backend_port"] == system["frontend_port"]:
-        raise ValueError("Backend and frontend ports must be different.")
+        raise ValueError("درگاه‌های بک‌اند و فرانت‌اند باید متفاوت باشند.")
     return system
 
 

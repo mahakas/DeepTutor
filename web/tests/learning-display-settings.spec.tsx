@@ -744,3 +744,12 @@ for (const finalOwner of ['bob', 'alice'] as const) {
     }
   )
 }
+
+it('shows a Persian reading sample instead of English and Chinese for Persian accounts', async () => {
+  live.language = 'fa'
+  await mount()
+  const preview = screen.getByTestId('learning-text-preview')
+  expect(preview.querySelector('[lang="fa"]')).toHaveTextContent('یادگیری با یک پرسش آغاز می‌شود')
+  expect(preview.querySelector('[lang="en"]')).toBeNull()
+  expect(preview.querySelector('[lang="zh"]')).toBeNull()
+})

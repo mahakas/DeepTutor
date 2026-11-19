@@ -1,7 +1,7 @@
 """Branded banner + localized labels for ``deeptutor start`` / ``deeptutor init``.
 
 Both commands read the user's language preference from
-``data/user/settings/interface.json`` (default ``en``) so their startup
+``data/user/settings/interface.json`` (default ``fa``) so their startup
 output matches the UI language the user has chosen.
 """
 
@@ -23,6 +23,114 @@ _ASCII_LOGO = r""" ____                  _____      _
 
 
 LABELS: dict[str, dict[str, str]] = {
+    "fa": {
+        "tagline": "آموزش شخصی‌سازی‌شده با عامل هوشمند",
+        "lab": "آزمایشگاه هوشمندی داده، دانشگاه هنگ‌کنگ",
+        "init.mode": "راه‌اندازی فضای کاری",
+        "init.workspace": "فضای کاری",
+        "init.note_settings_dir": "تنظیمات در data/user/settings نوشته می‌شوند.",
+        "init.cancelled": "راه‌اندازی لغو شد. چیزی ذخیره نشد.",
+        "init.step_ports": "گام {n}/{total} · درگاه‌ها",
+        "init.step_llm": "گام {n}/{total} · ارائه‌دهندهٔ مدل زبانی",
+        "init.step_embedding": "گام {n}/{total} · تعبیه‌سازی (بازیابی / پایگاه دانش)",
+        "init.step_search": "گام {n}/{total} · جست‌وجوی وب",
+        "init.step_review": "گام {n}/{total} · بازبینی و ذخیره",
+        "init.backend_port": "درگاه سرور پشتیبان",
+        "init.frontend_port": "درگاه رابط وب",
+        "init.llm_section": "ارائه‌دهندهٔ مدل زبانی",
+        "init.pick_provider": "ارائه‌دهندهٔ مدل زبانی انتخاب کنید",
+        "init.pick_embedding_provider": "ارائه‌دهندهٔ تعبیه‌سازی انتخاب کنید",
+        "init.show_all": "نمایش همهٔ ارائه‌دهندگان",
+        "init.custom_provider": "سفارشی / سایر",
+        "init.skip_step": "ردکردن / تنظیم در آینده",
+        "init.back": "بازگشت",
+        "init.skipped": "رد شد — بعداً از تنظیمات وب قابل‌پیکربندی است.",
+        "init.binding": "نوع اتصال",
+        "init.base_url": "نشانی پایه",
+        "init.api_key": "کلید API",
+        "init.api_key_env_detected": "در محیط شما {env_var}={masked} شناسایی شد. استفاده شود؟",
+        "init.api_key_prompt": "کلید API (ورودی پنهان؛ Enter برای ردکردن)",
+        "init.api_key_reuse_llm": "از کلید API مدل زبانی {masked} استفاده شود؟",
+        "init.edit_base_url": "نشانی پایه ویرایش شود؟",
+        "init.new_base_url": "نشانی پایهٔ تازه",
+        "init.model": "مدل",
+        "init.fetch_models": "در حال دریافت مدل‌های موجود از {url} …",
+        "init.fetch_models_ok": "{count} مدل پیدا شد.",
+        "init.fetch_models_fail": "فهرست مدل‌ها دریافت نشد ({error}). از فهرست جایگزین استفاده می‌شود.",
+        "init.pick_model": "مدل انتخاب کنید — یا برای ورود دستی {marker} بنویسید",
+        "init.custom_model": "نام مدل سفارشی",
+        "init.embedding_section": "ارائه‌دهندهٔ تعبیه‌سازی",
+        "init.embedding_endpoint": "نشانی نقطهٔ پایانی تعبیه‌سازی",
+        "init.embedding_api_key": "کلید API تعبیه‌سازی",
+        "init.embedding_model": "مدل تعبیه‌سازی",
+        "init.embedding_dimension": "ابعاد تعبیه‌سازی (خالی: خودکار)",
+        "init.search_section": "ارائه‌دهندهٔ جست‌وجوی وب",
+        "init.pick_search_provider": "ارائه‌دهندهٔ جست‌وجوی وب انتخاب کنید",
+        "init.search_api_key_prompt": "کلید API (ورودی پنهان؛ Enter برای ردکردن)",
+        "init.search_base_url_prompt": "نشانی پایه",
+        "init.search_no_key_note": "{label} به کلید API نیاز ندارد.",
+        "init.search_disabled_note": "جست‌وجوی وب غیرفعال می‌شود. عامل‌ها از ابزار جست‌وجو می‌گذرند.",
+        "init.review_search": "جست‌وجو",
+        "init.review_search_disabled": "غیرفعال",
+        "init.probe_offer": "اکنون اتصال آزمایش شود؟",
+        "init.probe_running": "در حال آزمایش {what} …",
+        "init.probe_ok": "{what} آماده است · {ms} میلی‌ثانیه",
+        "init.probe_fail": "{what} ناموفق بود: {error}",
+        "init.probe_retry": "کلید API دوباره وارد و آزمایش شود؟",
+        "init.copilot_reuse_login": "از ورود گیت‌هاب کوپایلت برای {account} استفاده شود؟",
+        "init.copilot_login_start": "در حال آغاز ورود دستگاه گیت‌هاب …",
+        "init.copilot_login_ok": "ورود گیت‌هاب کوپایلت برای {account} موفق بود.",
+        "init.copilot_login_fail": "ورود گیت‌هاب کوپایلت ناموفق بود: {error}",
+        "init.review_title": "بازبینی",
+        "init.review_llm": "مدل زبانی",
+        "init.review_embedding": "تعبیه‌سازی",
+        "init.review_ports": "درگاه‌ها",
+        "init.review_ports_value": "سرور پشتیبان {backend}، رابط وب {frontend}",
+        "init.confirm_save": "این تنظیمات ذخیره شوند؟",
+        "init.saved": "تنظیمات ذخیره شدند. بعداً در تنظیمات وب یا data/user/settings/ قابل‌ویرایش‌اند.",
+        "init.next_step": "برای راه‌اندازی درسیار، `deeptutor start` را اجرا کنید.",
+        "init.choice": "انتخاب",
+        "init.choice_invalid": "انتخاب نامعتبر است. دوباره تلاش کنید.",
+        "start.mode": "راه‌اندازی سرور پشتیبان و رابط وب",
+        "start.backend": "سرور پشتیبان",
+        "start.browser_api": "رابط برنامه‌نویسی مرورگر",
+        "start.frontend": "رابط وب",
+        "start.workspace": "فضای کاری",
+        "start.frontend_runtime": "محیط اجرای رابط وب",
+        "start.press_ctrl_c": "برای توقف Ctrl+C را بزنید.",
+        "start.detached_started": "درسیار در پس‌زمینه آغاز می‌شود (شناسهٔ راه‌انداز {pid}).",
+        "start.detached_already_running": "راه‌انداز پس‌زمینهٔ درسیار از قبل فعال است (شناسهٔ {pid}). گزارش: {log}",
+        "start.detached_log": "گزارش: {path}",
+        "start.detached_stop_hint": 'برای توقف، `deeptutor stop --home "{home}"` را اجرا کنید.',
+        "start.starting_backend": "در حال راه‌اندازی سرور پشتیبان …",
+        "start.starting_frontend": "در حال راه‌اندازی رابط وب …",
+        "start.reusing_frontend": "استفاده از رابط وب موجود در {url} (شناسهٔ فرایند {pid}).",
+        "start.restarting_frontend": "رابط وب موجود در {url} پاسخ نمی‌دهد؛ راه‌اندازی دوباره (شناسهٔ فرایند {pid}).",
+        "start.frontend_restart_failed": "رابط وب در {url} پاسخ نمی‌دهد و توقف خودکار ممکن نشد. فرایند {pid} را متوقف و `deeptutor start` را دوباره اجرا کنید.",
+        "start.waiting_for": "در انتظار {name} در {url} …",
+        "start.ready": "{name} آماده است.",
+        "start.open_in_browser": "نشانی {url} را در مرورگر باز کنید.",
+        "start.received_signal": "سیگنال {signal} دریافت شد؛ در حال خاموش‌شدن …",
+        "start.stopping": "در حال توقف {name} (شناسهٔ فرایند {pid})",
+        "start.exited": "{name} با کد {code} خارج شد",
+        "stop.not_running": "راه‌انداز پس‌زمینهٔ درسیار فعال نیست.",
+        "stop.requested": "درخواست توقف امن به راه‌انداز با شناسهٔ {pid} ارسال شد.",
+        "stop.complete": "درسیار متوقف شد.",
+        "stop.timeout": "راه‌انداز {pid} به‌موقع متوقف نشد. {log} را بررسی کنید.",
+        "start.not_ready": "{name} تا {timeout} ثانیه آماده نشد. سخت‌افزار کند یا فضای کاری نیازمند انتقال داده، زمان بیشتری می‌خواهد؛ {env} را به ثانیهٔ بیشتری تنظیم کنید.",
+        "start.port_in_use": "درسیار آغاز نمی‌شود؛ درگاه‌های {ports} اشغال‌اند. فرایند موجود را متوقف یا data/user/settings/system.json را تغییر دهید.",
+        "start.port_conflict_title": "تعارض درگاه شناسایی شد:",
+        "start.port_conflict_line": "  درگاه {port} برای {role} در اختیار:",
+        "start.port_conflict_proc": "    شناسهٔ فرایند {pid} · {command}",
+        "start.port_conflict_unknown_proc": "    (اطلاعات فرایند در دسترس نیست)",
+        "start.port_option_change": "تغییر درگاه‌ها (ذخیره در data/user/settings/system.json)",
+        "start.port_option_kill": "توقف فرایندهای اشغال‌کننده و ادامه",
+        "start.port_invalid": "درگاه نامعتبر: {value}. درگاهی آزاد بین ۱ و ۶۵۵۳۵ وارد کنید.",
+        "start.port_saved": "درگاه‌ها در {path} ذخیره شدند.",
+        "start.port_killing": "در حال توقف فرایند {pid} ({command}) …",
+        "start.port_kill_failed": "آزادکردن درگاه {port} ممکن نشد (شناسهٔ فرایند {pid}).",
+        "start.port_freed": "درگاه {port} آزاد شد.",
+    },
     "en": {
         "tagline": "Agent-Native Personalized Tutoring",
         "lab": "Data Intelligence Lab @ HKU",
@@ -816,6 +924,8 @@ def _pick_language(language: str | None) -> str:
     if not language:
         return "en"
     code = str(language).lower().strip().replace("_", "-")
+    if code in {"fa", "fa-ir", "persian", "فارسی"}:
+        return "fa"
     if code in {"zh", "zh-cn", "zh-hans", "chinese", "cn"}:
         return "zh"
     if code in {"de", "de-de", "de-at", "de-ch", "german", "deutsch"}:
@@ -831,7 +941,7 @@ def _pick_language(language: str | None) -> str:
     return "en"
 
 
-def resolve_language(default: str = "en") -> str:
+def resolve_language(default: str = "fa") -> str:
     """Read the saved UI language, falling back to ``default``.
 
     Safe to call before the runtime is fully initialized; any failure
@@ -864,7 +974,7 @@ def render_banner(language: str | None, *, mode_key: str | None = None) -> Panel
     lang = _pick_language(language)
     strings = LABELS[lang]
 
-    logo = Text(_ASCII_LOGO, style="bold bright_cyan")
+    logo = Text("درسیار" if lang == "fa" else _ASCII_LOGO, style="bold bright_cyan")
     tagline_line = f"{strings['tagline']}  ·  v{__version__}"
 
     body = Text()
@@ -879,7 +989,7 @@ def render_banner(language: str | None, *, mode_key: str | None = None) -> Panel
 
     return Panel(
         Align.left(body),
-        title="[bold bright_cyan]DeepTutor[/]",
+        title="[bold bright_cyan]درسیار[/]" if lang == "fa" else "[bold bright_cyan]DeepTutor[/]",
         border_style="bright_cyan",
         padding=(1, 2),
     )
