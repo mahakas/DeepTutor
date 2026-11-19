@@ -1,5 +1,7 @@
 "use client";
 
+import { inlineDirection } from "@/lib/inline-geometry";
+
 import { knowledgeBaseRef } from "@/lib/knowledge-helpers";
 import dynamic from "next/dynamic";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -1966,8 +1968,9 @@ export default function CoWriterWorkspace({ docId, onBack }: CoWriterWorkspacePr
               onKeyDown={(event) => {
                 if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
                   event.preventDefault();
+                  const direction = inlineDirection(event.currentTarget);
                   setEditorRatio((ratio) =>
-                    clampPanelRatio(ratio + (event.key === "ArrowLeft" ? -0.05 : 0.05)),
+                    clampPanelRatio(ratio + direction * (event.key === "ArrowLeft" ? -0.05 : 0.05)),
                   );
                 } else if (event.key === "Home") {
                   event.preventDefault();
@@ -1979,7 +1982,7 @@ export default function CoWriterWorkspace({ docId, onBack }: CoWriterWorkspacePr
               {/* Wider invisible hit-area so the handle is easy to grab */}
               <div className="absolute inset-y-0 -start-1.5 -end-1.5" />
               <div
-                className={`pointer-events-none absolute start-1/2 top-1/2 h-10 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity ${
+                className={`pointer-events-none absolute left-1/2 top-1/2 h-10 w-[3px] -translate-x-1/2 -translate-y-1/2 rounded-full transition-opacity ${
                   isResizingSplit
                     ? "bg-[var(--primary)] opacity-100"
                     : "bg-[var(--muted-foreground)]/40 opacity-0 group-hover:opacity-100"

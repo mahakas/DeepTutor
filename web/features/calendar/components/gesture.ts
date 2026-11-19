@@ -5,7 +5,7 @@ const DRAG_THRESHOLD = 4
 /**
  * Press, drag, release. Listens on the window so a fast pointer that
  * leaves the element still drives the drag; a press that never travels
- * past a few pixels is a click. Escape abandons the drag.
+ * past a few pixels is a click. Escape abandons the drag. The returned disposer cancels on unmount.
  */
 export function startGesture(
   event: ReactPointerEvent,
@@ -27,6 +27,7 @@ export function startGesture(
   event.preventDefault()
   const origin = { x: event.clientX, y: event.clientY }
   let moved = false
+  let finished = false
   const move = (pointer: PointerEvent) => {
     if (
       !moved &&
@@ -41,6 +42,8 @@ export function startGesture(
     onMove(pointer.clientX, pointer.clientY)
   }
   const finish = (commit: boolean) => {
+    if (finished) return
+    finished = true
     window.removeEventListener('pointermove', move)
     window.removeEventListener('pointerup', up)
     window.removeEventListener('pointercancel', cancel)
@@ -61,6 +64,7 @@ export function startGesture(
   window.addEventListener('pointerup', up)
   window.addEventListener('pointercancel', cancel)
   window.addEventListener('keydown', escape)
+  return cancel
 }
 
 /** The calendar day under a point, through whatever chips cover it. */

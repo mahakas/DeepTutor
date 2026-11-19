@@ -27,6 +27,7 @@ import {
   Field,
   INPUT_CLS,
 } from "@/components/chat/home/composer-field";
+import { inlineDirection } from "@/lib/inline-geometry";
 import Tooltip from "@/shared/ui/Tooltip";
 
 interface QuizConfigPanelProps {
@@ -689,7 +690,7 @@ function DraggableRatioBar({
       const rect = barRef.current.getBoundingClientRect();
       if (rect.width <= 0) return;
       const pxPerUnit = rect.width / safeTotal;
-      const rawDelta = e.clientX - drag.startX;
+      const rawDelta = inlineDirection(barRef.current) * (e.clientX - drag.startX);
       let deltaUnits = Math.round(rawDelta / pxPerUnit);
       if (deltaUnits === 0) return;
 
@@ -751,12 +752,12 @@ function DraggableRatioBar({
             role="separator"
             aria-orientation="vertical"
             aria-label={t("Drag to adjust ratio")}
-            style={{ left: `${leftPct}%` }}
+            style={{ insetInlineStart: `${leftPct}%` }}
             onPointerDown={handleBoundaryPointerDown(i)}
             onPointerMove={handlePointerMove}
             onPointerUp={handlePointerUp}
             onPointerCancel={handlePointerUp}
-            className="absolute top-0 z-10 flex h-full w-3 -translate-x-1/2 cursor-ew-resize items-center justify-center"
+            className="absolute top-0 z-10 flex h-full w-3 -translate-x-1/2 rtl:translate-x-1/2 cursor-ew-resize items-center justify-center"
           >
             <span className="h-4 w-[3px] rounded-full bg-white/85 shadow-[0_0_0_1px_rgba(0,0,0,0.08)]" />
           </div>

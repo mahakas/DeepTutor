@@ -164,3 +164,25 @@ def test_context_summary_prompts_are_core_package_data(language: str) -> None:
 
     assert owner(relative) == "core"
     assert str(ROOT / relative) in command.find_data_files("deeptutor", str(ROOT / "deeptutor"))
+
+
+def test_development_dependencies_include_real_persian_rendering():
+    studio = set(source_optional_dependencies()["studio"])
+    assert studio <= set(source_optional_dependencies()["dev"])
+    dev_requirements = (ROOT / "requirements/dev.txt").read_text(encoding="utf-8")
+    assert "-r studio.txt" in dev_requirements
+
+
+def test_full_python_ci_installs_studio_shaping_dependencies():
+    import yaml
+
+    workflow = yaml.safe_load((ROOT / ".github/workflows/tests.yml").read_text(encoding="utf-8"))
+    full_suite_jobs = [
+        job
+        for job in workflow["jobs"].values()
+        if any("pytest -q tests deeptutor/learning/tests" in step.get("run", "") for step in job["steps"])
+    ]
+    assert full_suite_jobs
+    for job in full_suite_jobs:
+        setup = "\n".join(step.get("run", "") for step in job["steps"])
+        assert "pip install -r requirements/studio.txt" in setup

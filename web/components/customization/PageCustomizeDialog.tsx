@@ -52,10 +52,10 @@ export function ChoiceRow({
       </span>
       <span
         aria-hidden
-        className={`flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${checked ? 'bg-primary' : 'bg-muted-foreground/25'}`}
+        className={`relative flex h-5 w-9 shrink-0 items-center rounded-full p-0.5 transition-colors ${checked ? 'bg-primary' : 'bg-muted-foreground/25'}`}
       >
         <span
-          className={`h-4 w-4 rounded-full bg-background shadow-sm transition-transform motion-reduce:transition-none ${checked ? 'translate-x-4' : ''}`}
+          className={`absolute h-4 w-4 rounded-full bg-background shadow-sm transition-transform motion-reduce:transition-none ${checked ? 'start-[18px]' : 'start-0.5'}`}
         />
       </span>
     </button>

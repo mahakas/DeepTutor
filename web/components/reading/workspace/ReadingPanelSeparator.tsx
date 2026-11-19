@@ -1,5 +1,7 @@
 'use client'
 
+import { inlineDirection } from '@/lib/inline-geometry'
+
 import { useEffect, useRef, useState, type PointerEvent } from 'react'
 
 /** Pointer capture keeps drag cleanup local, including cancel, removal, and unmount. */
@@ -21,7 +23,7 @@ export function ReadingPanelSeparator({
   /** Where it sits in the workspace grid. */
   className?: string
 }) {
-  const drag = useRef<{ id: number; x: number; width: number } | null>(null)
+  const drag = useRef<{ id: number; x: number; width: number; direction: number } | null>(null)
   const [resizing, setResizing] = useState(false)
   const resize = (next: number) => onResize(Math.round(Math.min(max, Math.max(min, next))))
   const finish = (event: PointerEvent<HTMLDivElement>) => {
@@ -58,19 +60,19 @@ export function ReadingPanelSeparator({
         event.preventDefault()
         event.currentTarget.focus()
         event.currentTarget.setPointerCapture(event.pointerId)
-        drag.current = { id: event.pointerId, x: event.clientX, width }
+        drag.current = { id: event.pointerId, x: event.clientX, width, direction: direction * inlineDirection(event.currentTarget) }
         setResizing(true)
       }}
       onPointerMove={event => {
         const current = drag.current
         if (!current || current.id !== event.pointerId) return
-        resize(current.width + direction * (event.clientX - current.x))
+        resize(current.width + current.direction * (event.clientX - current.x))
       }}
       onPointerUp={finish}
       onPointerCancel={finish}
       onLostPointerCapture={finish}
       onKeyDown={event => {
-        const step = (event.shiftKey ? 40 : 10) * direction
+        const step = (event.shiftKey ? 40 : 10) * direction * inlineDirection(event.currentTarget)
         const next = { ArrowLeft: width - step, ArrowRight: width + step, Home: min, End: max }[
           event.key
         ]
@@ -82,7 +84,7 @@ export function ReadingPanelSeparator({
     >
       {/* Invisible at rest — the panes' tones mark the edge — and a line
           only while the handle is being found or dragged. */}
-      <span className="absolute inset-y-3 start-1/2 w-[3px] -translate-x-1/2 rounded-full bg-transparent transition-colors group-hover/resize:bg-[color-mix(in_srgb,var(--primary)_60%,transparent)] group-focus-visible/resize:bg-[var(--primary)] group-active/resize:bg-[var(--primary)]" />
+      <span className="absolute inset-y-3 left-1/2 w-[3px] -translate-x-1/2 rounded-full bg-transparent transition-colors group-hover/resize:bg-[color-mix(in_srgb,var(--primary)_60%,transparent)] group-focus-visible/resize:bg-[var(--primary)] group-active/resize:bg-[var(--primary)]" />
     </div>
   )
 }

@@ -8,6 +8,8 @@
 # Use this file for Docker/CI when pyproject.toml/source code aren't yet available.
 
 -r server.txt
+# Studio regression tests render actual Persian text.
+-r studio.txt
 
 pytest>=7.0.0
 pytest-asyncio>=0.23.0

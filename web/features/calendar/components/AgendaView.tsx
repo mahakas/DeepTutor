@@ -7,6 +7,7 @@ import {
   addDays,
   dateKey,
   formatDate,
+  formatDayNumber,
   formatTime,
   formatWeekday,
   fromDateKey,
@@ -95,7 +96,7 @@ export function AgendaView({
           data-today={group.key === todayKey || undefined}
         >
           <button type="button" className="dt-cal-agenda-date" onClick={() => onOpenDay(group.day)}>
-            <span className="dt-cal-agenda-num">{group.day.getDate()}</span>
+            <span className="dt-cal-agenda-num">{formatDayNumber(group.day, locale)}</span>
             <span className="dt-cal-agenda-meta">
               {formatDate(group.day, locale, { month: 'short' })} ·{' '}
               {formatWeekday(group.day, locale)}

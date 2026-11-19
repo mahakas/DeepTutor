@@ -866,7 +866,7 @@
 .dt-fav-card-edit {
   position: absolute;
   top: 10px;
-  right: 10px;
+  inset-inline-end: 10px;
   display: grid;
   place-items: center;
   width: 28px;

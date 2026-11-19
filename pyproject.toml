@@ -82,7 +82,7 @@ guard = ["fastapi-guard>=8.1.1,<9.0.0"]
 # file stores, so a plain `pip install deeptutor` must not pull a driver
 # it will never open. `psycopg[binary]` avoids requiring libpq headers.
 db = ["psycopg[binary]>=3.1,<4.0", "psycopg-pool>=3.2,<4.0"]
-dev = ["deeptutor[server]=={version}", "pytest>=7.0.0", "pytest-asyncio>=0.23.0", "pre-commit>=3.0.0", "bandit>=1.8.0", "import-linter>=2.1.0,<3.0.0", "python-docx>=1.1.0", "openpyxl>=3.1.0", "python-pptx>=1.0.0", "pypdf>=4.0.0", "defusedxml>=0.7.1"]
+dev = ["deeptutor[server]=={version}", "deeptutor[studio]=={version}", "pytest>=7.0.0", "pytest-asyncio>=0.23.0", "pre-commit>=3.0.0", "bandit>=1.8.0", "import-linter>=2.1.0,<3.0.0", "python-docx>=1.1.0", "openpyxl>=3.1.0", "python-pptx>=1.0.0", "pypdf>=4.0.0", "defusedxml>=0.7.1"]
 all = ["deeptutor[full,math-animator,dev]=={version}"]
 audio-overview = ["deeptutor-audio-overview=={version}"]
 solve = ["deeptutor-solve=={version}"]

@@ -9,6 +9,8 @@ import {
   type RefObject,
 } from "react";
 
+import { inlineRatio } from "@/lib/inline-geometry";
+
 import { clampPanelRatio } from "../model/editor-state";
 import { loadSplitRatio, saveSplitRatio } from "../storage/drafts";
 
@@ -54,7 +56,7 @@ export function useSplitPane(containerRef: RefObject<HTMLElement | null>) {
       if (!container) return;
       const rect = container.getBoundingClientRect();
       if (rect.width <= 0) return;
-      setEditorRatio(clampPanelRatio((event.clientX - rect.left) / rect.width));
+      setEditorRatio(clampPanelRatio(inlineRatio(container, event.clientX)));
     };
     const handleEnd = () => setIsResizingSplit(false);
     window.addEventListener("pointermove", handleMove);

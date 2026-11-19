@@ -9,6 +9,7 @@ import {
   dateKey,
   daysBetween,
   formatDate,
+  formatDayNumber,
   formatMonthTitle,
   formatWeekday,
   monthWeeks,
@@ -97,7 +98,7 @@ export function MiniMonth({
                   className="dt-cal-mini-day"
                   onClick={() => onPick(day)}
                 >
-                  {day.getDate()}
+                  {formatDayNumber(day, locale)}
                 </button>
               )
             })}

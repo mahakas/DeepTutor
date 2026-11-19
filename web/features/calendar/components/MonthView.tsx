@@ -2,6 +2,7 @@
 
 import {
   useLayoutEffect,
+  useEffect,
   useMemo,
   useRef,
   useState,
@@ -15,6 +16,7 @@ import {
   dateKey,
   daysBetween,
   formatDate,
+  formatDayNumber,
   formatWeekday,
   fromDateKey,
   type DateKey,
@@ -83,6 +85,9 @@ export function MonthView({
   const [lanes, setLanes] = useState(4)
   const [drag, setDrag] = useState<Drag | null>(null)
   const dragRef = useRef<Drag | null>(null)
+  const cancelGesture = useRef<(() => void) | undefined>(undefined)
+  const rangeKey = weeks.map(week => week.map(dateKey).join()).join()
+  useEffect(() => () => cancelGesture.current?.(), [rangeKey])
   const [dropDay, setDropDay] = useState<DateKey | null>(null)
   const todayKey = dateKey(now)
 
@@ -123,7 +128,8 @@ export function MonthView({
   }
 
   const beginCreate = (event: ReactPointerEvent, day: DateKey) => {
-    startGesture(event, {
+    cancelGesture.current?.()
+    cancelGesture.current = startGesture(event, {
       onStart: () => set({ kind: 'create', from: day, to: day }),
       onMove: (x, y) => {
         const over = dayAtPoint(x, y)
@@ -153,7 +159,8 @@ export function MonthView({
     event.stopPropagation()
     const target = event.currentTarget
     const grab = dayAtPoint(event.clientX, event.clientY) ?? dateKey(item.start)
-    startGesture(event, {
+    cancelGesture.current?.()
+    cancelGesture.current = startGesture(event, {
       onStart: () => set({ kind: 'move', item, grab, day: grab }),
       onMove: (x, y) => {
         const over = dayAtPoint(x, y)
@@ -180,7 +187,7 @@ export function MonthView({
         ?.querySelector<HTMLElement>(`[data-cal-day="${to}"]`)
         ?.getBoundingClientRect() ?? first
     if (!first || !last) return { top: 120, left: 200, right: 200, bottom: 160 }
-    return { top: first.top, left: first.left, right: last.right, bottom: last.bottom }
+    return { top: first.top, left: Math.min(first.left, last.left), right: Math.max(first.right, last.right), bottom: last.bottom }
   }
 
   const taskOver = (event: DragEvent<HTMLElement>, day: DateKey) => {
@@ -363,7 +370,7 @@ function MonthWeek({
                       month: 'short',
                       day: 'numeric',
                     })
-                  : day.getDate()}
+                  : formatDayNumber(day, weekLocale)}
               </button>
               {footprint && <FootprintButton day={footprint} onOpen={onOpenFootprint} />}
             </div>
@@ -430,7 +437,7 @@ function laneStyle(first: number, last: number, lane: number): CSSProperties {
     position: 'absolute',
     top: HEAD + lane * LANE,
     height: LANE - 2,
-    left: `calc(${(first / 7) * 100}% + 3px)`,
+    insetInlineStart: `calc(${(first / 7) * 100}% + 3px)`,
     width: `calc(${((last - first + 1) / 7) * 100}% - 6px)`,
   }
 }

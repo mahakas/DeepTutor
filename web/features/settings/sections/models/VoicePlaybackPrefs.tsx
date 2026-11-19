@@ -40,8 +40,8 @@ function PlaybackToggle({
         aria-label={label}
       >
         <span
-          className={`inline-block h-4 w-4 transform rounded-full bg-[var(--background)] shadow-sm transition-transform ${
-            value ? "translate-x-4" : "translate-x-0.5"
+          className={`absolute h-4 w-4 transform rounded-full bg-[var(--background)] shadow-sm transition-transform ${
+            value ? "start-4" : "start-0.5"
           }`}
         />
       </button>

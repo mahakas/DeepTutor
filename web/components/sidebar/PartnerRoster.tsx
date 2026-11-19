@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { inlineDirection } from '@/lib/inline-geometry'
 import PartnerAvatar from '@/components/partners/PartnerAvatar'
 import type { PartnerNavigationData } from '@/hooks/usePartnerNavigation'
 import { rosterFade, rosterLens } from './roster-lens'
@@ -37,19 +38,23 @@ export function PartnerRoster({
     if (!strip) return
     const viewport = strip.clientWidth
     const maxScroll = strip.scrollWidth - viewport
-    const fade = rosterFade({ viewport, scrollLeft: strip.scrollLeft, maxScroll, zone: ZONE })
-    strip.style.setProperty('--dt-roster-fade-l', `${fade.left.toFixed(1)}px`)
-    strip.style.setProperty('--dt-roster-fade-r', `${fade.right.toFixed(1)}px`)
+    const direction = inlineDirection(strip)
+    const scroll = Math.max(0, Math.min(maxScroll, direction * strip.scrollLeft))
+    const fade = rosterFade({ viewport, scrollLeft: scroll, maxScroll, zone: ZONE })
+    strip.style.setProperty('--dt-roster-fade-l', `${(direction === -1 ? fade.right : fade.left).toFixed(1)}px`)
+    strip.style.setProperty('--dt-roster-fade-r', `${(direction === -1 ? fade.left : fade.right).toFixed(1)}px`)
     for (const item of strip.children) {
       if (!(item instanceof HTMLElement)) continue
       const lens = rosterLens({
-        center: item.offsetLeft + item.offsetWidth / 2,
+        center: direction === -1
+          ? viewport - item.offsetLeft - item.offsetWidth / 2
+          : item.offsetLeft + item.offsetWidth / 2,
         viewport,
-        scrollLeft: strip.scrollLeft,
+        scrollLeft: scroll,
         maxScroll,
         zone: ZONE,
       })
-      item.style.transform = lens.depth ? `translate3d(${lens.dx.toFixed(2)}px, 0, 0) scale(${lens.scale.toFixed(3)})` : ''
+      item.style.transform = lens.depth ? `translate3d(${(direction * lens.dx).toFixed(2)}px, 0, 0) scale(${lens.scale.toFixed(3)})` : ''
       item.style.opacity = lens.opacity < 1 ? lens.opacity.toFixed(3) : ''
       item.style.setProperty('--dt-roster-label', lens.label.toFixed(3))
       item.dataset.depth = lens.depth.toFixed(3)
@@ -63,10 +68,12 @@ export function PartnerRoster({
   const bringForward = useCallback((item: HTMLElement, behavior: ScrollBehavior) => {
     const strip = stripRef.current
     if (!strip) return
-    const start = item.offsetLeft - strip.scrollLeft
+    const direction = inlineDirection(strip)
+    const start = (direction === -1 ? strip.clientWidth - item.offsetLeft - item.offsetWidth : item.offsetLeft)
+      - direction * strip.scrollLeft
     const end = start + item.offsetWidth
-    if (start < ZONE) strip.scrollBy({ left: start - ZONE, behavior })
-    else if (end > strip.clientWidth - ZONE) strip.scrollBy({ left: end - (strip.clientWidth - ZONE), behavior })
+    if (start < ZONE) strip.scrollBy({ left: direction * (start - ZONE), behavior })
+    else if (end > strip.clientWidth - ZONE) strip.scrollBy({ left: direction * (end - (strip.clientWidth - ZONE)), behavior })
   }, [])
 
   useLayoutEffect(() => {
@@ -94,10 +101,12 @@ export function PartnerRoster({
       if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return
       const maxScroll = strip.scrollWidth - strip.clientWidth
       if (maxScroll <= 0) return
-      const next = Math.min(maxScroll, Math.max(0, strip.scrollLeft + event.deltaY))
-      if (next === strip.scrollLeft) return
+      const direction = inlineDirection(strip)
+      const current = direction * strip.scrollLeft
+      const next = Math.min(maxScroll, Math.max(0, current + event.deltaY))
+      if (next === current) return
       event.preventDefault()
-      strip.scrollLeft = next
+      strip.scrollLeft = direction * next
     }
     strip.addEventListener('wheel', wheel, { passive: false })
     return () => {

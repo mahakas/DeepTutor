@@ -4,7 +4,7 @@ import CalendarPage from '@/features/calendar/components/CalendarPage'
 import CalendarRuntime from '@/features/calendar/components/CalendarRuntime'
 import TaskBoardRuntime from '@/components/tasks/TaskBoardRuntime'
 import { DEFAULT_TASK_COLORS } from '@/lib/task-board-api'
-import { dateKey, addDays, addMonths, monthWeeks } from '@/features/calendar/model/dates'
+import { dateKey, addDays, addMonths, monthWeeks, formatDate, formatDayNumber } from '@/features/calendar/model/dates'
 import { buildRule, parseRule } from '@/features/calendar/model/recurrence'
 import { layoutDay } from '@/features/calendar/model/layout'
 import { draftFromOccurrence, draftToInput } from '@/features/calendar/model/draft'
@@ -233,5 +233,17 @@ describe('calendar models', () => {
       task_workspace_id: null,
     }
     expect(draftToInput(draftFromOccurrence(occurrence)).tzid).toBe('Europe/Berlin')
+  })
+})
+
+
+describe('calendar locale consistency', () => {
+  it.each(['fa', 'fa-IR', 'th-TH'])('keeps %s headings in the same calendar as month navigation', locale => {
+    const date = new Date(2026, 10, 19)
+    const options = { year: 'numeric', month: 'long' } as const
+    const expected = new Intl.DateTimeFormat(locale, { ...options, calendar: 'gregory' }).format(date)
+    expect(formatDate(date, locale, options)).toBe(expected)
+    const expectedDay = new Intl.NumberFormat(locale, { useGrouping: false }).format(19)
+    expect(formatDayNumber(date, locale)).toBe(expectedDay)
   })
 })

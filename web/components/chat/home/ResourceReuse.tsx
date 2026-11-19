@@ -76,7 +76,7 @@ export function ResourceReuseControl({ kind }: { kind: ResourceKind }) {
           }}
         >
           <span
-            className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform duration-150 motion-reduce:transition-none ${enabled ? "translate-x-3" : "translate-x-0.5"}`}
+            className={`absolute top-0.5 h-2.5 w-2.5 rounded-full bg-white shadow-sm transition-transform duration-150 motion-reduce:transition-none ${enabled ? "start-3" : "start-0.5"}`}
           />
         </span>
       </label>

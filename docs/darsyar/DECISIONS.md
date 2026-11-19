@@ -1034,3 +1034,99 @@ is involved.
 **Rollback:** Revert the individual i18n commits in reverse dependency order;
 restore source and target catalogs together so key-parity tests remain valid.
 No data migration or destructive runtime action is required.
+
+### D-102 — RTL includes pointer geometry, scrolling, overlays and first paint
+
+**Context:** Logical spacing alone did not mirror the application. Mobile and
+preview drawers translated toward the wrong edge, switches used positive X
+translations, and calendar hit testing assumed columns ran left-to-right.
+Split panes, board scroll controls and quiz proportions had the same mismatch.
+The existing CSS guard only examined declarations beginning a line, missing
+compact modern-layout rules. Note insertion emitted `start`/`end` classes while
+its preview stylesheet still selected `left`/`right`.
+
+**Decision:** Bridge physical pointer coordinates to logical inline coordinates
+with `web/lib/inline-geometry.ts`. Respect computed direction, including nested
+LTR content, rather than reading only the app language. Normalize native signed
+RTL scroll offsets at control boundaries. Use logical offsets for switch thumbs,
+calendar spans, menus and layout overlays. Mirror navigation glyphs with the
+independent CSS `scale` property so tree expansion rotation remains intact.
+Publish Persian direction in initial server HTML; the locale provider still
+updates the document for an explicitly selected language.
+
+Keep genuinely physical geometry physical: viewport anchors, DOM rectangles,
+and `left:50%` plus a half-width translation must not be mechanically converted.
+The CSS regression check now parses declarations with PostCSS, including compact
+single-line rules. Add LTR/RTL interaction and real Chromium regression tests.
+
+**Consequences:** RTL correctness is a behavioral property, not the absence of
+the word `left`. No locale is removed, no schema changes and no user-data
+migration are required. A passing targeted browser suite is not a claim that
+every document format, browser engine and external integration was inspected.
+
+**Rollback:** Revert the RTL commits together with their regression tests;
+source and CSS presentation must remain paired.
+
+### D-103 — Calendar views own and cancel their outstanding gestures
+
+**Context:** Four reproductions showed that unmounting a month/week view during
+a press or drag left global listeners and, in the week view, an animation frame
+alive. Releasing the pointer could call the old view's create callback after it
+had disappeared. The global dragging marker could remain set.
+
+**Decision:** Gestures expose idempotent cancellation. Each view disposes its
+outstanding gesture on unmount, date-range change, or replacement by a new
+gesture. Cancellation removes pointer/keyboard listeners and animation frames,
+clears the dragging marker, and never commits a create/reschedule operation.
+Depend on date-range values rather than array identity so background rerenders
+do not cancel valid interactions unnecessarily.
+
+**Consequences:** Regression tests cover both views, with and without crossing
+the drag threshold. The original four tests failed before the fix and pass with
+it. This is lifecycle cleanup, not a persisted-data migration.
+
+**Rollback:** Revert the calendar cancellation commit; this restores the leak
+and is not recommended.
+
+### D-104 — Full test installations must include Persian shaping dependencies
+
+**Context:** A clean development install followed by the complete Python suite
+produced 22 failures and 14 fixture errors because `arabic-reshaper` and
+`python-bidi` were absent. Installing `requirements/studio.txt` made all 73
+applicable tests in the four affected files pass, with 25 integration skips.
+The full Python CI job installed the full/partners profiles but not studio.
+
+**Decision:** Include the existing studio extra in development dependencies,
+reference `studio.txt` from `requirements/dev.txt`, and explicitly install it
+in the full Python CI job. Include the studio requirements in that job's cache
+key. Add packaging/workflow tests to prevent the omission from returning.
+
+**Consequences:** Persian rendering still refuses to produce disconnected or
+reversed text when runtime dependencies are genuinely absent. Do not weaken the
+renderer or skip its tests to obtain a green build. This changes test/development
+installation only; it does not modify a production deployment or provision any
+secrets.
+
+**Rollback:** Revert the test-dependency commit; the studio regression suite
+then requires a separate explicit installation again.
+
+### D-105 — Calendar labels must use the calendar its arithmetic implements
+
+**Context:** The real-browser visual audit showed a Persian month heading above
+a Gregorian month grid. `Intl.DateTimeFormat('fa')` implicitly selects the
+Persian calendar, but native `Date.getMonth()`, month navigation, day cells,
+recurrence inputs and the existing grid all use Gregorian arithmetic. Cells
+also mixed localized first-of-month labels with unlocalized numeric days.
+
+**Decision:** Calendar formatters explicitly default to `calendar: 'gregory'`
+and localize all day-number glyphs. Keep the existing date model and event
+instants intact. This is a consistency fix, not an implementation of Jalali
+month arithmetic. A true Jalali calendar requires a separate end-to-end change
+to month boundaries, navigation, range selection and recurrence semantics.
+
+**Consequences:** Persian readers see Persian-formatted Gregorian month/year
+and digits instead of a misleading mixed-calendar grid. Tests cover Persian,
+regional Persian and Thai (another locale with a non-Gregorian default).
+
+**Rollback:** Revert the calendar-label consistency commit. No persisted dates
+or user settings have been converted, so no data migration is involved.

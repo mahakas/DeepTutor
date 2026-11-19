@@ -37,7 +37,8 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="fa-IR"
+      dir="rtl"
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >

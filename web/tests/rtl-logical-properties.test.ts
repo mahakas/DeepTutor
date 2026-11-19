@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import fs from 'node:fs'
 import path from 'node:path'
+import { parse } from 'postcss'
 
 /**
  * Guards the RTL / logical-property conversion (Phase 1, step 1.3).
@@ -99,6 +100,8 @@ test('no class string still uses a physical inline-start/end utility', () => {
         continue
       }
       for (const hit of body.matchAll(DIRECTIONAL)) {
+        // Centring is physical geometry: left:50% minus half the element width.
+        if (hit[3] === 'left' && hit[4] === '-1/2' && body.includes('-translate-x-1/2')) continue
         offenders.push(`${file.rel}: ${hit[0]}`)
       }
     }
@@ -164,11 +167,13 @@ test('an edge is never split across physical and logical halves', () => {
 test('stylesheets express insets and padding on the inline axis', () => {
   const offenders: string[] = []
   for (const file of cssFiles()) {
-    for (const [index, line] of file.text.split('\n').entries()) {
-      if (/^\s*(margin|padding|border)-(?:left|right)\s*:/.test(line)) {
-        offenders.push(`${file.rel}:${index + 1} ${line.trim()}`)
+    // Parse declarations: a line-anchored regex misses minified modern styles.
+    parse(file.text).walkDecls(decl => {
+      if (decl.prop === 'left' && decl.value.includes('50%')) return // Physical centring.
+      if (/^(?:(?:margin|padding|border)-(?:left|right)|left|right)$/.test(decl.prop)) {
+        offenders.push(`${file.rel}:${decl.source?.start?.line} ${decl.prop}: ${decl.value}`)
       }
-    }
+    })
   }
   assert.deepEqual(offenders, [])
 })
@@ -183,4 +188,34 @@ test('the locale declares direction and the document publishes it', () => {
   const provider = fs.readFileSync(path.join(ROOT, 'i18n/I18nProvider.tsx'), 'utf8')
   assert.match(provider, /root\.lang =/)
   assert.match(provider, /root\.dir =/)
+})
+
+test('centred overlays do not combine a logical origin with a physical translation', () => {
+  const offenders: string[] = []
+  for (const file of SOURCE) {
+    for (const match of file.text.matchAll(/["'`]([^"'`\n]{0,4000})["'`]/g)) {
+      if (/\bstart-1\/2\b/.test(match[1]) && /-translate-x-1\/2/.test(match[1])) {
+        offenders.push(file.rel)
+      }
+    }
+  }
+  assert.deepEqual(offenders, [])
+})
+
+test('closed navigation and preview drawers leave through their logical edge', () => {
+  const shell = fs.readFileSync(path.join(ROOT, 'components/layout/AppShell.tsx'), 'utf8')
+  assert.match(shell, /max-md:-translate-x-full rtl:max-md:translate-x-full/)
+  const preview = fs.readFileSync(path.join(ROOT, 'components/chat/preview/FilePreviewDrawer.tsx'), 'utf8')
+  assert.match(preview, /translate-x-full rtl:-translate-x-full/)
+})
+
+test('note insertion previews style the logical sides emitted by their component', () => {
+  const css = fs.readFileSync(path.join(ROOT, 'features/notes/components/notes.css'), 'utf8')
+  assert.match(css, /\.dt-note-menu-preview\.end\s*\{\s*inset-inline-start:/)
+  assert.match(css, /\.dt-note-menu-preview\.start\s*\{\s*inset-inline-end:/)
+})
+
+test('server HTML starts in the deployment default direction before hydration', () => {
+  const layout = fs.readFileSync(path.join(ROOT, 'app/layout.tsx'), 'utf8')
+  assert.match(layout, /<html\s+lang="fa-IR"\s+dir="rtl"/)
 })

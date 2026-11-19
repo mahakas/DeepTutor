@@ -840,8 +840,8 @@ function Toggle({
       }`}
     >
       <span
-        className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white shadow transition-transform ${
-          on ? "translate-x-[18px]" : "translate-x-[3px]"
+        className={`absolute h-3.5 w-3.5 rounded-full bg-white shadow transition-transform ${
+          on ? "start-[18px]" : "start-[3px]"
         }`}
       />
     </button>

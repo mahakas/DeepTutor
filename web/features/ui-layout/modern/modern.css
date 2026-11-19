@@ -206,7 +206,7 @@
 /* A conversation row wraps its time with the actions that replace it. */
 .dt-session-section .dt-record-time, .dt-record-children .dt-record-time, .dt-record-loose .dt-record-time { max-width: none; }
 .dt-record-header .dt-nav-icon.is-active, .dt-record-header .dt-nav-icon[aria-expanded="true"] { background: var(--accent); color: var(--foreground); }
-.dt-popover.dt-record-sort-menu { left: auto; right: 0; width: 172px; transform-origin: top right; }
+.dt-popover.dt-record-sort-menu { inset-inline-start: auto; inset-inline-end: 0; width: 172px; transform-origin: top right; }
 .dt-record-sort-menu .dt-menu-item { min-height: 30px; font-size: 12.5px; }
 .dt-record-search {
   display: flex; align-items: center; gap: 6px; height: 30px; margin: 4px 0 6px; padding: 0 4px 0 9px;
@@ -269,14 +269,14 @@ button.dt-record-toggle:focus-visible { outline: 2px solid var(--ring); outline-
 .dt-rail-foot { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; padding-top: 6px; }
 .dt-workspace-menu.is-rail { flex: none; margin-bottom: 2px; }
 .dt-workspace-menu.is-rail .dt-workspace-trigger { justify-content: center; width: 36px; height: 36px; padding: 0; }
-.dt-workspace-menu.is-rail .dt-workspace-panel { top: 0; left: calc(100% + 10px); width: 264px; }
+.dt-workspace-menu.is-rail .dt-workspace-panel { top: 0; inset-inline-start: calc(100% + 10px); width: 264px; }
 .dt-workspace-trigger { display: flex; align-items: center; gap: 8px; width: 100%; height: 34px; padding: 0 8px; border-radius: var(--dt-radius-md); font-size: 13.5px; font-weight: 600; color: var(--foreground); transition: background-color 140ms; }
 .dt-workspace-trigger:hover, .dt-workspace-trigger[aria-expanded="true"] { background: var(--accent); }
 .dt-workspace-trigger:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
 .dt-workspace-glyph { display: inline-flex; flex-shrink: 0; align-items: center; justify-content: center; border-radius: 6px; color: #fff; font-weight: 600; line-height: 1; }
 .dt-workspace-glyph.is-general { padding: 1px; background: transparent; }
 .dt-popover {
-  position: absolute; z-index: 60; top: calc(100% + 4px); left: 0;
+  position: absolute; z-index: 60; top: calc(100% + 4px); inset-inline-start: 0;
   padding: 6px; border-radius: var(--dt-radius-lg); background: var(--popover); color: var(--popover-foreground);
   box-shadow: var(--dt-shadow-md); transform-origin: top left; animation: dt-pop-in 140ms var(--dt-ease);
 }
@@ -357,7 +357,7 @@ button.dt-record-toggle:focus-visible { outline: 2px solid var(--ring); outline-
    on after, the way a command reads. Each turns into a remove mark on hover;
    Backspace at the start of the text marks the last one first. */
 .dt-composer-lead {
-  position: absolute; top: 0; left: -6px; z-index: 1; display: flex; align-items: center; gap: 1px;
+  position: absolute; top: 0; inset-inline-start: -6px; z-index: 1; display: flex; align-items: center; gap: 1px;
   max-width: 72%; height: 1lh; font-size: 16px; line-height: 1.625; pointer-events: none;
   transition: opacity 140ms;
 }
@@ -487,8 +487,8 @@ button.dt-record-toggle:focus-visible { outline: 2px solid var(--ring); outline-
 }
 .dt-tray-popover.is-down { top: calc(100% + 8px); }
 .dt-tray-popover.is-up { bottom: calc(100% + 8px); }
-.dt-tray-popover.is-start { left: 0; }
-.dt-tray-popover.is-end { right: 0; }
+.dt-tray-popover.is-start { inset-inline-start: 0; }
+.dt-tray-popover.is-end { inset-inline-end: 0; }
 .dt-tray-popover.is-down.is-start { transform-origin: 24px 0; }
 .dt-tray-popover.is-down.is-end { transform-origin: calc(100% - 24px) 0; }
 .dt-tray-popover.is-up.is-start { transform-origin: 24px 100%; }
@@ -520,7 +520,7 @@ button.dt-record-toggle:focus-visible { outline: 2px solid var(--ring); outline-
   color: color-mix(in srgb, var(--foreground) 72%, var(--popover)); }
 .dt-tray-list[data-bare] .dt-tray-row[aria-selected="true"] .dt-tray-lead { background: transparent; color: var(--primary); }
 .dt-tray-row[aria-selected="true"] .dt-tray-lead { background: color-mix(in srgb, var(--primary) 11%, transparent); color: var(--primary); }
-.dt-tray-lead-status { position: absolute; right: -1px; bottom: -1px; width: 8px; height: 8px; border-radius: 999px; box-shadow: 0 0 0 2px var(--popover); }
+.dt-tray-lead-status { position: absolute; inset-inline-end: -1px; bottom: -1px; width: 8px; height: 8px; border-radius: 999px; box-shadow: 0 0 0 2px var(--popover); }
 .dt-tray-row-title, .dt-tray-row-meta { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .dt-tray-row-title { font-size: 13px; color: var(--foreground); }
 .dt-tray-row-meta { margin-top: 1px; font-size: 11.5px; color: var(--muted-foreground); }
@@ -548,9 +548,9 @@ button.dt-record-toggle:focus-visible { outline: 2px solid var(--ring); outline-
 .dt-tray-reuse { display: inline-flex; align-items: center; gap: 7px; height: 26px; padding: 0 7px; border-radius: 6px; font-size: 12px; color: var(--muted-foreground); cursor: pointer; transition: background-color 120ms, color 120ms; }
 .dt-tray-reuse:hover { background: var(--accent); color: var(--foreground); }
 .dt-tray-switch { position: relative; flex: none; width: 24px; height: 14px; border-radius: 999px; background: var(--border); transition: background-color 160ms; }
-.dt-tray-switch::after { content: ""; position: absolute; top: 2px; left: 2px; width: 10px; height: 10px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: transform 200ms var(--dt-ease); }
+.dt-tray-switch::after { content: ""; position: absolute; top: 2px; inset-inline-start: 2px; width: 10px; height: 10px; border-radius: 999px; background: #fff; box-shadow: 0 1px 2px rgb(0 0 0 / 0.2); transition: inset-inline-start 200ms var(--dt-ease); }
 .dt-tray-reuse input:checked + .dt-tray-switch { background: var(--primary); }
-.dt-tray-reuse input:checked + .dt-tray-switch::after { transform: translateX(10px); }
+.dt-tray-reuse input:checked + .dt-tray-switch::after { inset-inline-start: 12px; }
 .dt-tray-reuse input:focus-visible + .dt-tray-switch { outline: 2px solid var(--ring); outline-offset: 2px; }
 /* Narrower homes for the composer (the reading companion, a side chat):
    the tray drops what it can do without, in order — the current values,
@@ -595,7 +595,7 @@ button.dt-record-toggle:focus-visible { outline: 2px solid var(--ring); outline-
 .dt-starter-menu { position: relative; z-index: 20; }
 /* Drops out of the row it belongs to: quick to appear, soft to settle. */
 .dt-starter-card {
-  position: absolute; top: calc(100% + 8px); left: 0; right: 0; margin: 0 auto; max-width: 600px;
+  position: absolute; top: calc(100% + 8px); inset-inline-start: 0; inset-inline-end: 0; margin: 0 auto; max-width: 600px;
   padding: 6px; border-radius: 16px; background: var(--popover); color: var(--popover-foreground);
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--border) 70%, transparent), 0 14px 36px -14px rgb(15 15 15 / 0.22), 0 2px 6px -2px rgb(15 15 15 / 0.06);
   transform-origin: 50% 0; animation: dt-starter-drop 150ms cubic-bezier(0.16, 1, 0.3, 1);

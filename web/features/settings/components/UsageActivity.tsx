@@ -1,5 +1,7 @@
 'use client'
 
+import { inlineDirection } from '@/lib/inline-geometry'
+
 import Tooltip from "@/shared/ui/Tooltip";
 import { useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -119,8 +121,8 @@ export default function UsageActivity({
                         onClick={() => setSelected(day)}
                         onKeyDown={event => {
                           const moves: Record<string, number> = {
-                            ArrowRight: 7,
-                            ArrowLeft: -7,
+                            ArrowRight: 7 * inlineDirection(event.currentTarget),
+                            ArrowLeft: -7 * inlineDirection(event.currentTarget),
                             ArrowDown: 1,
                             ArrowUp: -1,
                             Home: -index,

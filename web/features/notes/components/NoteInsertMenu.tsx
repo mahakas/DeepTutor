@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { inlineDirection } from '@/lib/inline-geometry'
 import { FileText, Search, CornerDownLeft } from 'lucide-react'
 import {
   useExtension,
@@ -56,11 +57,13 @@ export default function NoteInsertMenu({
   }, [hoverIndex, items, onItemClick])
   useEffect(() => {
     const measure = () => {
-      const rect = root.current?.getBoundingClientRect()
-      if (rect)
-        setPreviewSide(
-          window.innerWidth - rect.right > 246 ? 'end' : rect.left > 246 ? 'start' : 'inline'
-        )
+      const node = root.current
+      if (!node) return
+      const rect = node.getBoundingClientRect()
+      const rtl = inlineDirection(node) === -1
+      const endRoom = rtl ? rect.left : window.innerWidth - rect.right
+      const startRoom = rtl ? window.innerWidth - rect.right : rect.left
+      setPreviewSide(endRoom > 246 ? 'end' : startRoom > 246 ? 'start' : 'inline')
     }
     measure()
     const observer = new ResizeObserver(measure)
