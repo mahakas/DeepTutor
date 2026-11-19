@@ -1001,3 +1001,36 @@ sandbox توسعه مرورگر ندارد و **نمی‌تواند داشته �
 **درس:** تستی که رفتارِ غلط را قفل می‌کند بدتر از نبودِ تست است — چون به شما می‌گوید آن رفتار محافظت‌شده است. قبل از اینکه چیزی را «درست» فرض کنم، باید می‌پرسیدم این تست چه چیزی را *باید* تضمین کند.
 
 **Rollback:** `git revert` کامیت `06b83d7c`. توصیه نمی‌شود؛ باگ نابودی کلید برمی‌گردد.
+
+### D-101 — Complete Persian UI catalogs are a required gate
+
+**Context:** The Persian locale previously passed a 12% coverage floor. Source
+keys are not always displayed English text: the rename table changes 883 values,
+so translating or validating placeholders against raw keys can silently produce
+incorrect copy. The user requested Persian throughout the frontend and retained
+launcher CLI, without another approval checkpoint.
+
+**Decision:** Populate all 6,700 app entries and 45 common entries. Validate
+batches against displayed source values, with explicit by-value support in
+`scripts/i18n/apply.py`. Require Persian in the strict frontend audit instead of
+the partial-locale floor. Add exact catalog-key and interpolation parity tests.
+Keep technical identifiers, provider/model names, URLs, option names and machine
+JSON contracts unchanged. Existing language selection remains available; Persian
+is the default, not a ban on other user-selected languages.
+
+The retained launcher, initialization wizard, doctor presentation, and all 106
+runtime banner labels have Persian copy. Localize Typer usage and the help option
+through public command/group subclasses, rather than patching the parser.
+Third-party exception details are not rewritten. Diagnostic JSON stays stable.
+
+**Consequences:** Newly introduced untranslated catalog keys or broken Persian
+placeholders fail checks. Persian accounts see Persian reading samples, token
+units and indexing durations. Catalog completeness does not certify the quality
+of every sentence; native-speaker editorial review remains desirable. This does
+not translate generated model responses or arbitrary external service content.
+No schema migration, production configuration change, or credential provisioning
+is involved.
+
+**Rollback:** Revert the individual i18n commits in reverse dependency order;
+restore source and target catalogs together so key-parity tests remain valid.
+No data migration or destructive runtime action is required.

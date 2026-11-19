@@ -638,7 +638,7 @@ def run_init(
 def register(app: typer.Typer) -> None:
     @app.command("init")
     def init_command(
-        cli: bool = typer.Option(False, "--cli", help="راه‌اندازی بدون باز کردن مرورگر."),
+        cli: bool = typer.Option(False, "--cli", help="راه‌اندازی بدون تنظیم درگاه‌های وب."),
         home: Path | None = typer.Option(None, "--home", help="ریشهٔ فضای کاری زمان اجرا."),
         non_interactive: bool = typer.Option(
             False,
