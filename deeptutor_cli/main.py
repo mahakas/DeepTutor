@@ -46,21 +46,22 @@ from .common import console
 
 # Typer renders its panels with English titles taken from ``typer.rich_utils``.
 # Those are module-level constants, so overriding them before any command object
-# is built localises every subcommand's help panel at once. ``Usage:`` lives
-# inside a regex in Rich's help renderer and click's ``--help`` description is a
-# hardcoded default, so those two stay English -- the only English left in the
-# CLI's help output.
+# is built localises every subcommand's help panel at once. Command-specific
+# usage and help-option descriptions use the public extension points in persian.
 _rich_utils.OPTIONS_PANEL_TITLE = "گزینه‌ها"
 _rich_utils.COMMANDS_PANEL_TITLE = "دستورها"
 _rich_utils.ARGUMENTS_PANEL_TITLE = "آرگومان‌ها"
+_rich_utils.ERRORS_PANEL_TITLE = "خطا"
+_rich_utils.RICH_HELP = "برای راهنما از [blue]'{command_path} {help_option}'[/] استفاده کنید."
 from .doctor import register as register_doctor
 from .init_cmd import register as register_init
 from .module import register as register_module
+from .persian import PersianTyper
 
 set_mode(RunMode.CLI)
 configure_logging(console_stream=sys.stderr)
 
-app = typer.Typer(
+app = PersianTyper(
     name="deeptutor",
     help="درسیار – راه‌اندازی و کار با وب‌اپ.",
     no_args_is_help=True,
@@ -91,7 +92,7 @@ for owner, module in manifests().items():
 
 register_doctor(app)
 register_init(app)
-module_app = typer.Typer(help="نصب، حذف و بررسی ماژول‌های اختیاری.")
+module_app = PersianTyper(help="نصب، حذف و بررسی ماژول‌های اختیاری.")
 app.add_typer(module_app, name="module")
 register_module(module_app)
 
