@@ -18,7 +18,7 @@ from .common import console
 
 
 def _render_rich(report: DoctorReport) -> None:
-    table = Table(title="DeepTutor setup diagnostics")
+    table = Table(title="عیب‌یابی راه‌اندازی درسیار")
     table.add_column("Status", no_wrap=True)
     table.add_column("Check")
     table.add_column("Details")
@@ -44,21 +44,21 @@ def register(app: typer.Typer) -> None:
     def doctor(
         target: str | None = typer.Argument(
             None,
-            help="Optional diagnostic target; use 'runtime' for v2 coordination/storage.",
+            help="هدف اختیاری عیب‌یابی؛ برای هماهنگی/ذخیره‌سازی نسخهٔ ۲ از 'runtime' استفاده کنید.",
         ),
         online: bool = typer.Option(
             False,
             "--online",
-            help="Send a small request to the configured model provider.",
+            help="ارسال یک درخواست کوچک به ارائه‌دهندهٔ مدل تنظیم‌شده.",
         ),
         fmt: str = typer.Option(
             "rich",
             "--format",
             "-f",
-            help="Output format: rich | json.",
+            help="قالب خروجی: rich | json.",
         ),
     ) -> None:
-        """Check whether DeepTutor is ready to start a session."""
+        """بررسی آماده بودن درسیار برای آغاز یک نشست."""
         if fmt not in {"rich", "json"}:
             raise typer.BadParameter("must be 'rich' or 'json'", param_hint="--format")
 

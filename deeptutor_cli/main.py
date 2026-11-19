@@ -36,12 +36,23 @@ from pathlib import Path
 import sys
 
 import typer
+from typer import rich_utils as _rich_utils
 
 from deeptutor.logging import configure_logging
 from deeptutor.modules.catalog import manifests, module_enabled
 from deeptutor.runtime.mode import RunMode, set_mode
 
 from .common import console
+
+# Typer renders its panels with English titles taken from ``typer.rich_utils``.
+# Those are module-level constants, so overriding them before any command object
+# is built localises every subcommand's help panel at once. ``Usage:`` lives
+# inside a regex in Rich's help renderer and click's ``--help`` description is a
+# hardcoded default, so those two stay English -- the only English left in the
+# CLI's help output.
+_rich_utils.OPTIONS_PANEL_TITLE = "گزینه‌ها"
+_rich_utils.COMMANDS_PANEL_TITLE = "دستورها"
+_rich_utils.ARGUMENTS_PANEL_TITLE = "آرگومان‌ها"
 from .doctor import register as register_doctor
 from .init_cmd import register as register_init
 from .module import register as register_module
@@ -51,7 +62,7 @@ configure_logging(console_stream=sys.stderr)
 
 app = typer.Typer(
     name="deeptutor",
-    help="DeepTutor – launch and operate the web app.",
+    help="درسیار – راه‌اندازی و کار با وب‌اپ.",
     no_args_is_help=True,
     add_completion=False,
 )
@@ -80,31 +91,31 @@ for owner, module in manifests().items():
 
 register_doctor(app)
 register_init(app)
-module_app = typer.Typer(help="Install, remove and inspect optional modules.")
+module_app = typer.Typer(help="نصب، حذف و بررسی ماژول‌های اختیاری.")
 app.add_typer(module_app, name="module")
 register_module(module_app)
 
 
 @app.command()
 def start(
-    home: Path | None = typer.Option(None, "--home", help="Runtime workspace root."),
+    home: Path | None = typer.Option(None, "--home", help="ریشهٔ فضای کاری زمان اجرا."),
     dev: bool = typer.Option(
         False,
         "--dev",
-        help="Use the Next.js development server for frontend work.",
+        help="استفاده از سرور توسعهٔ Next.js برای کار روی فرانت‌اند.",
     ),
     detach: bool = typer.Option(
         False,
         "--detach",
-        help="Run outside the current console; stop later with `deeptutor stop`.",
+        help="اجرا بیرون از کنسول فعلی؛ بعداً با `deeptutor stop` متوقفش کنید.",
     ),
     open_browser: bool = typer.Option(
         True,
         "--open-browser/--no-browser",
-        help="Open the frontend automatically after startup.",
+        help="باز کردن خودکار فرانت‌اند پس از راه‌اندازی.",
     ),
 ) -> None:
-    """Launch backend + frontend together. Source installs default to production."""
+    """راه‌اندازی هم‌زمان بک‌اند و فرانت‌اند. نصب‌های منبعی به‌طور پیش‌فرض در حالت تولید اجرا می‌شوند."""
     from deeptutor.modules.catalog import require_module
 
     require_module("server")
@@ -116,9 +127,9 @@ def start(
 
 @app.command()
 def stop(
-    home: Path | None = typer.Option(None, "--home", help="Runtime workspace root."),
+    home: Path | None = typer.Option(None, "--home", help="ریشهٔ فضای کاری زمان اجرا."),
 ) -> None:
-    """Stop a DeepTutor launcher started with ``--detach``."""
+    """متوقف کردن راه‌انداز درسیار که با ``--detach`` اجرا شده است."""
     from deeptutor.runtime.launcher import stop as stop_web
 
     if not stop_web(home=home):
@@ -127,11 +138,11 @@ def stop(
 
 @app.command()
 def serve(
-    host: str = typer.Option("0.0.0.0", help="Bind address."),
-    port: int | None = typer.Option(None, help="Port number."),
-    reload: bool = typer.Option(False, help="Enable auto-reload for development."),
+    host: str = typer.Option("0.0.0.0", help="نشانی اتصال."),
+    port: int | None = typer.Option(None, help="شمارهٔ درگاه."),
+    reload: bool = typer.Option(False, help="فعال‌سازی بارگذاری خودکار برای توسعه."),
 ) -> None:
-    """Start only the DeepTutor API server (no frontend)."""
+    """فقط سرور API درسیار را اجرا می‌کند (بدون فرانت‌اند)."""
     import asyncio
 
     from deeptutor.modules.catalog import require_module
