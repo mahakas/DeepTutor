@@ -26,6 +26,10 @@ export function initI18n(language?: unknown) {
   i18n.use(initReactI18next).init({
     resources,
     lng: normalizeLanguage(language),
+    // The default interface language for this deployment is Persian, so the
+    // fallback matches it: a missing fa string falls back to the English source
+    // text (which is the key itself) rather than switching the whole surface to
+    // English. English stays the source-of-truth bundle and the key format.
     fallbackLng: "en",
     // Use a single default namespace to keep lookups simple.
     // We intentionally keep keySeparator disabled so keys like "Generating..." remain valid.
